@@ -1,0 +1,6 @@
+mesop
+google-genai
+google-cloud-aiplatform
+google-cloud-storage
+google.auth
+python-dotenv
