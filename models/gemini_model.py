@@ -13,108 +13,78 @@
 # limitations under the License.
 """ Gemini model methods """
 
-import random
-import time
+from tenacity import (
+    retry,
+    wait_exponential,
+    stop_after_attempt,
+    retry_if_exception_type,
+)
 
 from google.cloud import aiplatform
 from google import genai
 from google.genai.types import (
     GenerateContentConfig,
 )
-from google.genai.errors import (
-    ClientError
-)
+from google.genai.errors import ClientError
 import vertexai
 
-from config.config import Config
+from models.set_up import ModelSetup
 
 
 # Initialize configuration
-cfg = Config()
-vertexai.init(project=cfg.PROJECT_ID, location=cfg.LOCATION)
-aiplatform.init(project=cfg.PROJECT_ID, location=cfg.LOCATION)
-client = genai.Client(
-    vertexai=True,
-    project=cfg.PROJECT_ID,
-    location=cfg.LOCATION,
+client, model_id = ModelSetup.init()
+MODEL_ID = model_id
+
+
+@retry(
+    wait=wait_exponential(
+        multiplier=2, min=1, max=25
+    ),  # Exponential backoff (1s, 2s, 4s... up to 10s)
+    stop=stop_after_attempt(3),  # Stop after 3 attempts
+    retry=retry_if_exception_type(Exception),  # Retry on all exceptions
+    reraise=True,  # re-raise the last exception if all retries fail
 )
-
-
 def generate_images(prompt: str) -> str:
-    """generate text content"""
+    """generate image content"""
 
-    max_retries = 3
-    retry_count = 0
-    backoff_factor = 1  # Initial backoff factor (in seconds)
+    try:
+        response = client.models.generate_content(
+            model=MODEL_ID,
+            contents=prompt,
+            config=GenerateContentConfig(
+                response_modalities=["TEXT"],
+            ),
+        )
+        print(f"success! {response.text}")
+        return response.text
 
-    while retry_count < max_retries:
-        try:
-            response = client.models.generate_content(
-                model=cfg.MODEL_GEMINI_MULTIMODAL,
-                contents=prompt,
-                config=GenerateContentConfig(
-                    response_modalities=["IMAGE"],
-                ),
-            )
-            print(f"success! {response.text}")
-            return response.text
-
-        except ClientError as e:
-            print(f"error: {e}")
-            #print(f"Exception type: {type(e).__name__} in {e.__class__.__module__}")
-
-            if hasattr(e, 'code') and e.code == 429:  # ClientError
-                print(f"An error occurred: {e}")
-                retry_count += 1
-
-                # Exponential backoff with jitter
-                sleep_time = backoff_factor * (1 + random.random())  # Add jitter
-                print(
-                    f"Retrying in {sleep_time:.2f} seconds (attempt {retry_count}/{max_retries})"
-                )
-                time.sleep(sleep_time)
-                backoff_factor *= 2  # Increase backoff factor exponentially
-            else:
-                return "oops, couldn't be nice"
-
-    return "oops, couldn't be nice"
+    except Exception as e:
+        print(f"error: {e}")
+        raise  # Re-raise the exception for tenacity to handle
 
 
+@retry(
+    wait=wait_exponential(
+        multiplier=2, min=1, max=25
+    ),  # Exponential backoff (1s, 2s, 4s... up to 10s)
+    stop=stop_after_attempt(3),  # Stop after 3 attempts
+    retry=retry_if_exception_type(Exception),  # Retry on all exceptions
+    reraise=True,  # re-raise the last exception if all retries fail
+)
 def generate_content(prompt: str) -> str:
     """generate text content"""
 
-    max_retries = 3
-    retry_count = 0
-    backoff_factor = 1  # Initial backoff factor (in seconds)
+    try:
+        response = client.models.generate_content(
+            model=MODEL_ID,
+            contents=prompt,
+            config=GenerateContentConfig(
+                response_modalities=["TEXT"],
+            ),
+        )
+        print(f"success! {response.text}")
+        return response.text
 
-    while retry_count < max_retries:
-        try:
-            response = client.models.generate_content(
-                model=cfg.MODEL_GEMINI_MULTIMODAL,
-                contents=prompt,
-                config=GenerateContentConfig(
-                    response_modalities=["TEXT"],
-                ),
-            )
-            print(f"success! {response.text}")
-            return response.text
-
-        except ClientError as e:
-            print(f"error: {e}")
-            #print(f"Exception type: {type(e).__name__} in {e.__class__.__module__}")
-
-            if hasattr(e, 'code') and e.code == 429:  # ClientError
-                print(f"An error occurred: {e}")
-                retry_count += 1
-
-                # Exponential backoff with jitter
-                sleep_time = backoff_factor * (1 + random.random())  # Add jitter
-                print(
-                    f"Retrying in {sleep_time:.2f} seconds (attempt {retry_count}/{max_retries})"
-                )
-                time.sleep(sleep_time)
-                backoff_factor *= 2  # Increase backoff factor exponentially
-            else:
-                return "oops, couldn't be nice"
-
-    return "oops, couldn't be nice"
+    except Exception as e:
+        print(f"error: {e}")
+        raise  # Re-raise the exception for tenacity to handle

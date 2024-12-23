@@ -37,9 +37,6 @@ export GENMEDIA_BUCKET=${PROJECT_ID}-genmedia
 
 Gemini 2.0 settings
 
-```
-export 
-
 
 ## Arena app
 

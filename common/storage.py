@@ -18,11 +18,11 @@ from google.cloud import aiplatform
 from google.cloud import storage
 import vertexai
 
-from config.config import Config
+from config.default import Default
 
 
 # Initialize Configuration
-cfg = Config()
+cfg = Default()
 vertexai.init(project=cfg.PROJECT_ID, location=cfg.LOCATION)
 aiplatform.init(project=cfg.PROJECT_ID, location=cfg.LOCATION)
 

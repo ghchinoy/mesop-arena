@@ -21,9 +21,11 @@ import vertexai
 
 import mesop as me
 
-from config.config import Config
+from config.default import Default
 from state.state import AppState
 from components.header import header
+
+from models.set_up import ModelSetup
 
 from models.gemini_model import (
     generate_content,
@@ -32,9 +34,17 @@ from models.gemini_model import (
 
 
 # Initialize configuration
-cfg = Config()
-vertexai.init(project=cfg.PROJECT_ID, location=cfg.LOCATION)
-aiplatform.init(project=cfg.PROJECT_ID, location=cfg.LOCATION)
+client, model_id = ModelSetup.init()
+MODEL_ID = model_id
+
+
+image_models = [
+    Default.MODEL_IMAGEN2, 
+    Default.MODEL_IMAGEN3_FAST, 
+    Default.MODEL_IMAGEN3, 
+    "gemini2",
+] # "black-forest-labs/FLUX.1-schnell"]
+
 
 
 @me.stateclass
@@ -137,9 +147,6 @@ def random_prompt() -> str:
     prompts = json.loads(data)
     prompt = random.choice(prompts["imagen"])
     return prompt
-
-
-image_models = [cfg.MODEL_IMAGEN2, cfg.MODEL_IMAGEN3_FAST, cfg.MODEL_IMAGEN3, "gemini2",] # "black-forest-labs/FLUX.1-schnell"]
 
 
 def on_click_reload_arena(e: me.ClickEvent):  # pylint: disable=unused-argument

@@ -12,9 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-import random
-import time
+from tenacity import retry, wait_exponential, stop_after_attempt, retry_if_exception_type
 
 import mesop as me
 
@@ -25,55 +23,32 @@ from google.genai.types import (
 
 from components.header import header
 
+from models.set_up import ModelSetup
 
-PROJECT_ID = os.environ.get("PROJECT_ID")
-LOCATION = "us-central1"
-MODEL_ID = "gemini-2.0-flash-exp"
+client, model_id = ModelSetup.init()
+MODEL_ID = model_id
 
-print(f"initiating genai client with {PROJECT_ID} in {LOCATION}")
-client = genai.Client(
-    vertexai=True,
-    project=PROJECT_ID,
-    location=LOCATION,
+@retry(
+    wait=wait_exponential(multiplier=1, min=1, max=10),  # Exponential backoff (1s, 2s, 4s... up to 10s)
+    stop=stop_after_attempt(3),  # Stop after 3 attempts
+    retry=retry_if_exception_type(Exception), # Retry on all exceptions
+    reraise=True # re-raise the last exception if all retries fail
 )
-
-
 def say_something_nice(name: str) -> str:
-    """say something nice method"""
-
-    max_retries = 3
-    retry_count = 0
-    backoff_factor = 1  # Initial backoff factor (in seconds)
-
-    while retry_count < max_retries:
-        try:
-            response = client.models.generate_content(
-                model=MODEL_ID,
-                contents=f"say something nice about {name}, they're testing you, gemini 2.0, and you appreciate this! please make it a few sentences. You may address them by name.",
-                config=GenerateContentConfig(
-                    response_modalities=["TEXT"],
-                ),
-            )
-            print(f"success! {response.text}")
-            return response.text
-
-        except Exception as e:
-            print(f"error: {e}")
-            if e.code == 429:
-                print(f"An error occurred: {e}")
-                retry_count += 1
-
-                # Exponential backoff with jitter
-                sleep_time = backoff_factor * (1 + random.random())  # Add jitter
-                print(
-                    f"Retrying in {sleep_time:.2f} seconds (attempt {retry_count}/{max_retries})"
-                )
-                time.sleep(sleep_time)
-                backoff_factor *= 2  # Increase backoff factor exponentially
-            else:
-                return "oops, couldn't be nice"
-            
-    return "oops, couldn't be nice"
+    """Says something nice about a given name using Gemini."""
+    try:
+        response = client.models.generate_content(
+            model=MODEL_ID,
+            contents=f"say something nice about {name}, they're testing you, gemini 2.0, and you appreciate this! please make it a few sentences. You may address them by name.",
+            config=GenerateContentConfig(
+                response_modalities=["TEXT"],
+            ),
+        )
+        print(f"success! {response.text}")
+        return response.text
+    except Exception as e:
+        print(f"error: {e}")
+        raise  # Re-raise the exception for tenacity to handle
 
 
 def gemini_page_content(app_state: me.state):
