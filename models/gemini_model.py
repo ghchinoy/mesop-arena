@@ -52,10 +52,10 @@ def generate_images(prompt: str) -> str:
             model=MODEL_ID,
             contents=prompt,
             config=GenerateContentConfig(
-                response_modalities=["TEXT"],
+                response_modalities=["IMAGE"],
             ),
         )
-        print(f"success! {response.text}")
+        print(f"success! {response.candidates[0].content}")
         return response.text
 
     except Exception as e:

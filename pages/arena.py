@@ -18,6 +18,7 @@ import json
 
 from google.cloud import aiplatform
 import vertexai
+from vertexai.preview.vision_models import ImageGenerationModel
 
 import mesop as me
 
@@ -36,15 +37,15 @@ from models.gemini_model import (
 # Initialize configuration
 client, model_id = ModelSetup.init()
 MODEL_ID = model_id
-
+config = Default()
 
 image_models = [
-    Default.MODEL_IMAGEN2, 
-    Default.MODEL_IMAGEN3_FAST, 
-    Default.MODEL_IMAGEN3, 
-    "gemini2",
-] # "black-forest-labs/FLUX.1-schnell"]
-
+    Default.MODEL_IMAGEN2,
+    Default.MODEL_IMAGEN3_FAST,
+    Default.MODEL_IMAGEN3,
+    #"gemini2",
+    # "black-forest-labs/FLUX.1-schnell"
+]
 
 
 @me.stateclass
@@ -56,6 +57,8 @@ class PageState:
 
     # pylint: disable=invalid-field-call
     arena_prompt: str = ""
+    image_negative_prompt_input: str = ""
+    image_aspect_ratio: str = "1:1"
     arena_textarea_key: int = 0
     arena_model1: str = ""
     arena_model2: str = ""
@@ -116,15 +119,20 @@ def imagen_generate_images(model_name: str, prompt: str, aspect_ratio: str):
     """
     arena_output = []
     print(f"model: {model_name}")
-    model1 = ImageGenerationModel.from_pretrained(model_name)
-    
-    response = model1.generate_images(
+    print(f"prompt: {prompt}")
+    print(f"target output: {config.GENMEDIA_BUCKET}")
+
+    vertexai.init(project="ghchinoy-genai-sa", location=config.LOCATION)
+
+    image_model = ImageGenerationModel.from_pretrained(model_name)
+
+    response = image_model.generate_images(
         prompt=prompt,
         add_watermark=True,
         #aspect_ratio=getattr(state, "image_aspect_ratio"),
         aspect_ratio=aspect_ratio,
         number_of_images=1,
-        output_gcs_uri=cfg.GENMEDIA_BUCKET,
+        output_gcs_uri=f"gs://{config.GENMEDIA_BUCKET}",
         language="auto",
         #negative_prompt=state.image_negative_prompt_input,
         safety_filter_level="block_few",
@@ -135,7 +143,8 @@ def imagen_generate_images(model_name: str, prompt: str, aspect_ratio: str):
         #output = img._as_base64_string()
         #state.image_output.append(output)
         arena_output.append(img._gcs_uri)
-        
+        print(f"image created: {img._gcs_uri}")
+
     return arena_output
 
 
@@ -163,7 +172,7 @@ def on_click_reload_arena(e: me.ClickEvent):  # pylint: disable=unused-argument
     # get random images
     state.arena_model1, state.arena_model2 = random.sample(image_models, 2)
     print(f"{state.arena_model1} vs. {state.arena_model2}")
-    arena_images(random_prompt)
+    arena_images(state.arena_prompt)
 
     state.is_loading = False
     yield
@@ -201,10 +210,15 @@ def arena_page_content(app_state: me.state):
 
     page_state = me.state(PageState)
 
+    # TODO this is an initialization function that should be extracted
     if not app_state.welcome_message:
         app_state.welcome_message = generate_welcome()
     if not page_state.arena_prompt:
         page_state.arena_prompt = random_prompt()
+        page_state.arena_model1 = config.MODEL_IMAGEN2
+        page_state.arena_model2 = config.MODEL_IMAGEN3_FAST
+        arena_images(page_state.arena_prompt)
+        #imagen_generate_images(Default.MODEL_IMAGEN3_FAST, page_state.arena_prompt, "1:1")
 
 
     with me.box(

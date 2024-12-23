@@ -12,7 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from tenacity import retry, wait_exponential, stop_after_attempt, retry_if_exception_type
+from tenacity import (
+    retry,
+    wait_exponential,
+    stop_after_attempt,
+    retry_if_exception_type,
+)
 
 import mesop as me
 
@@ -28,11 +33,14 @@ from models.set_up import ModelSetup
 client, model_id = ModelSetup.init()
 MODEL_ID = model_id
 
+
 @retry(
-    wait=wait_exponential(multiplier=1, min=1, max=10),  # Exponential backoff (1s, 2s, 4s... up to 10s)
+    wait=wait_exponential(
+        multiplier=1, min=1, max=10
+    ),  # Exponential backoff (1s, 2s, 4s... up to 10s)
     stop=stop_after_attempt(3),  # Stop after 3 attempts
-    retry=retry_if_exception_type(Exception), # Retry on all exceptions
-    reraise=True # re-raise the last exception if all retries fail
+    retry=retry_if_exception_type(Exception),  # Retry on all exceptions
+    reraise=True,  # re-raise the last exception if all retries fail
 )
 def say_something_nice(name: str) -> str:
     """Says something nice about a given name using Gemini."""

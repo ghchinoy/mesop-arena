@@ -17,8 +17,6 @@ import os
 from dataclasses import dataclass, field
 from dotenv import load_dotenv
 
-from models.image_models import ImageModel
-
 
 load_dotenv(override=True)
 

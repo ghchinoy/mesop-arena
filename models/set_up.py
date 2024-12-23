@@ -17,7 +17,7 @@ class ModelSetup:
         model_id: Optional[str] = None,
     ):
         """ initializes common model settings"""
-        
+
         config = Default()
         if not project_id:
             project_id = config.PROJECT_ID
