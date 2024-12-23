@@ -7,6 +7,8 @@ Currently, it uses Imagen 2, Imagen 3, and Gemini 2.0 experimental's image gener
 The application is written in [Mesop](https://google.github.io/mesop/), a python UX framework, with the [Studio Scaffold starter](https://github.com/ghchinoy/studio-scaffold).
 
 
+![](./assets/arena_view.png)
+
 
 ## Prerequisites
 
@@ -28,14 +30,16 @@ uv pip install -r requirements.txt
 
 ### Application environment vars
 
-Images are generated and stored in a Google Cloud Storage bucket
+Images are generated and stored in a Google Cloud Storage bucket.
+
+Enter these into a new file named `.env`
 
 ```
-export PROJECT_ID=$(gcloud config get project)
-export GENMEDIA_BUCKET=${PROJECT_ID}-genmedia
+PROJECT_ID=YOUR_PROJECT_ID # from $(gcloud config get project)
+LOCATION=us-central1
+MODEL_ID=gemini-2.0-flash-exp
+GENMEDIA_BUCKET=YOUR_MEDIA_BUCKET # like: ${PROJECT_ID}-genmedia
 ```
-
-Gemini 2.0 settings
 
 
 ## Arena app
