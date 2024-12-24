@@ -22,6 +22,7 @@ from vertexai.preview.vision_models import ImageGenerationModel
 
 import mesop as me
 
+from common.metadata import add_image_metadata
 from config.default import Default
 from state.state import AppState
 from components.header import header
@@ -144,6 +145,7 @@ def imagen_generate_images(model_name: str, prompt: str, aspect_ratio: str):
         #state.image_output.append(output)
         arena_output.append(img._gcs_uri)
         print(f"image created: {img._gcs_uri}")
+        add_image_metadata(img._gcs_uri, prompt, model_name)
 
     return arena_output
 
@@ -198,6 +200,7 @@ def reload_welcome(e: me.ClickEvent):  # pylint: disable=unused-argument
     """ Handle regeneration of welcome message event """
     app_state = me.state(AppState)
     app_state.welcome_message = generate_welcome()
+    yield
 
 
 def generate_welcome() -> str:

@@ -37,6 +37,7 @@ class Default:
     INIT_VERTEX: bool = True
 
     GENMEDIA_BUCKET = os.environ.get("GENMEDIA_BUCKET")
+    IMAGE_COLLECTION_NAME = os.environ.get("IMAGE_COLLECTION_NAME", "arena_images")
 
     # image models
     MODEL_IMAGEN2 = "imagegeneration@006"

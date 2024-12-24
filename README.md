@@ -13,6 +13,7 @@ The application is written in [Mesop](https://google.github.io/mesop/), a python
 ## Prerequisites
 
 
+
 ### Python environment
 
 A python virtual environment, with required packages installed.
@@ -28,6 +29,13 @@ uv venv venv
 uv pip install -r requirements.txt
 ```
 
+### Cloud Firestore
+
+Cloud Firestore is used to save generated image metadata.
+
+Create a collection called `arena_images` (can change this via .env var `IMAGE_COLLECTION_NAME`, see below).
+
+
 ### Application environment vars
 
 Images are generated and stored in a Google Cloud Storage bucket.
@@ -35,10 +43,11 @@ Images are generated and stored in a Google Cloud Storage bucket.
 Enter these into a new file named `.env`
 
 ```
-PROJECT_ID=YOUR_PROJECT_ID # from $(gcloud config get project)
-LOCATION=us-central1
+PROJECT_ID=YOUR_PROJECT_ID  # from $(gcloud config get project)
+# LOCATION=us-central1  # defaults to "us-central1"
 MODEL_ID=gemini-2.0-flash-exp
 GENMEDIA_BUCKET=YOUR_MEDIA_BUCKET # like: ${PROJECT_ID}-genmedia
+# IMAGE_COLLECTION_NAME=FIRESTORE_IMAGE_METADATA_COLLECTION  # defaults to "arena_images"
 ```
 
 
