@@ -16,8 +16,8 @@ from typing import Optional
 from dotenv import load_dotenv
 from google import genai
 import firebase_admin
-from firebase_admin import credentials
-from firebase_admin import firestore
+from firebase_admin import credentials, firestore
+
 from config.default import Default
 
 
@@ -25,7 +25,7 @@ load_dotenv(override=True)
 
 
 class ModelSetup:
-    """ model set up class"""
+    """model set up class"""
 
     @staticmethod
     def init(
@@ -33,7 +33,7 @@ class ModelSetup:
         location: Optional[str] = None,
         model_id: Optional[str] = None,
     ):
-        """ initializes common model settings"""
+        """initializes common model settings"""
 
         config = Default()
         if not project_id:
@@ -50,16 +50,21 @@ class ModelSetup:
             project=project_id,
             location=location,
         )
-        
+
         return client, model_id
 
+
 class PersistenceSetup:
-    """ persistence set up class """
-    @staticmethod
-    def init():
-        # Initialize Firestore with Vertex AI service account credentials
-        cred = credentials.ApplicationDefault()  # Use the default Vertex AI service account
-        firebase_admin.initialize_app(cred)
-        client = firestore.client()  # Get the Firestore client
-        
-        return client
+    """persistence set up class"""
+
+    _client = None  # Class-level variable to store the Firestore client
+
+    @classmethod
+    def init(cls):
+        """Initializes the Firestore client if it hasn't been already."""
+        if cls._client is None:
+            # Initialize Firestore (only if not initialized yet)
+            cred = credentials.ApplicationDefault()
+            firebase_admin.initialize_app(cred)
+            cls._client = firestore.client()
+        return cls._client
