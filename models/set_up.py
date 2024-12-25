@@ -56,7 +56,7 @@ class ModelSetup:
 
 class PersistenceSetup:
     """persistence set up class"""
-
+    
     _client = None  # Class-level variable to store the Firestore client
 
     @classmethod
