@@ -51,8 +51,8 @@ def home_page():
     on_load=on_load,
     security_policy=me.SecurityPolicy(dangerously_disable_trusted_types=True),
 )
-def another_page():
-    """Another Page"""
+def leaderboard_page():
+    """Leaderboard Page"""
     leaderboard_page_content(me.state(AppState))
 
 
