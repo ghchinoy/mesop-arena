@@ -15,8 +15,10 @@
 from typing import Optional
 from dotenv import load_dotenv
 from google import genai
-import firebase_admin
-from firebase_admin import credentials, firestore
+
+from config.firebase_app import initialize_firebase
+#import firebase_admin
+#from firebase_admin import credentials, firestore
 
 from config.default import Default
 
@@ -56,15 +58,12 @@ class ModelSetup:
 
 class PersistenceSetup:
     """persistence set up class"""
-    
+
     _client = None  # Class-level variable to store the Firestore client
 
     @classmethod
     def init(cls):
         """Initializes the Firestore client if it hasn't been already."""
         if cls._client is None:
-            # Initialize Firestore (only if not initialized yet)
-            cred = credentials.ApplicationDefault()
-            firebase_admin.initialize_app(cred)
-            cls._client = firestore.client()
+            cls._client = initialize_firebase()
         return cls._client

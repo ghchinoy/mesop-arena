@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import datetime
 
 from config.default import Default
 from models.set_up import ModelSetup, PersistenceSetup
@@ -28,12 +29,15 @@ db = PersistenceSetup.init()
 def add_image_metadata(gcsuri: str, prompt: str, model: str):
     """ Add Image metadata to Firestore persistence """
 
+    current_datetime = datetime.datetime.now()
+
     # Store the image metadata in Firestore
     doc_ref = db.collection(config.IMAGE_COLLECTION_NAME).document()
     doc_ref.set({
         "gcsuri": gcsuri,
         "prompt": prompt,
         "model": model,
+        "timestamp": current_datetime, # alt: firestore.SERVER_TIMESTAMP
     })
     
     print(f"Image data stored in Firestore with document ID: {doc_ref.id}")
