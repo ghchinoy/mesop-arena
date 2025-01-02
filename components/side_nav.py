@@ -25,6 +25,7 @@ from components.styles import (
 page_json = [
     {"id": 0, "display": "Arena", "icon": "stadium", "route": "/"},
     {"id": 1, "display": "Leaderboard", "icon": "leaderboard", "route": "/leaderboard"},
+    {"id": 2, "display": "History", "icon": "history", "route": "/history"},
     {
         "id": 10,
         "display": "Settings",

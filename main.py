@@ -18,6 +18,7 @@ from state.state import AppState
 from components.page_scaffold import page_scaffold
 from pages.arena import arena_page_content
 from pages.leaderboard import leaderboard_page_content
+from pages.history import history_page_content
 from pages.settings import settings_page_content
 
 # from pages.gemini2 import gemini_page_content
@@ -55,6 +56,17 @@ def leaderboard_page():
     """Leaderboard Page"""
     leaderboard_page_content(me.state(AppState))
 
+
+@me.page(
+    path="/history",
+    title="Arena - History",
+    on_load=on_load,
+    security_policy=me.SecurityPolicy(dangerously_disable_trusted_types=True),
+)
+def history_page():
+    """History Page"""
+    history_page_content(me.state(AppState))
+    
 
 @me.page(
     path="/settings",
