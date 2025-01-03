@@ -31,9 +31,12 @@ uv pip install -r requirements.txt
 
 ### Cloud Firestore
 
-Cloud Firestore is used to save generated image metadata.
+Cloud Firestore is used to save generated image metadata and ELO scores for the leaderboard.
 
-Create a collection called `arena_images` (can change this via .env var `IMAGE_COLLECTION_NAME`, see below).
+* Create a collection called `arena_images` 
+* Create a collection called `arena_elo` 
+
+These can be changed this via .env var `IMAGE_COLLECTION_NAME` and `IMAGE_RATINGS_COLLECTION_NAME`, respectively; see below.
 
 
 ### Application environment vars
@@ -47,7 +50,8 @@ PROJECT_ID=YOUR_PROJECT_ID  # from $(gcloud config get project)
 # LOCATION=us-central1  # defaults to "us-central1"
 MODEL_ID=gemini-2.0-flash-exp
 GENMEDIA_BUCKET=YOUR_MEDIA_BUCKET # like: ${PROJECT_ID}-genmedia
-# IMAGE_COLLECTION_NAME=FIRESTORE_IMAGE_METADATA_COLLECTION  # defaults to "arena_images"
+# IMAGE_COLLECTION_NAME=<FIRESTORE_IMAGE_METADATA_COLLECTION>  # defaults to "arena_images"
+# IMAGE_RATINGS_COLLECTION_NAME=<FIRESTORE_IMAGE_MODEL_RATINGS_COLLECTION> # defaults to "arena_elo"
 ```
 
 
