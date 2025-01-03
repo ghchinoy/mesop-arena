@@ -79,8 +79,10 @@ def update_elo_ratings(model1: str, model2: str, winner: str, images: list[str])
     )
 
     updated_ratings = {}
+    elo_rating_doc_id = None  # Store the document ID
     if doc_ref:
         for doc in doc_ref:
+            elo_rating_doc_id = doc.id  # Get the document ID
             ratings = doc.to_dict().get("ratings", {})
             updated_ratings.update(ratings)
 
@@ -102,22 +104,31 @@ def update_elo_ratings(model1: str, model2: str, winner: str, images: list[str])
 
     updated_ratings[model1] = round(elo_model1, 2)
     updated_ratings[model2] = round(elo_model2, 2)
-    
+
     print(f"Ratings: {updated_ratings}")
 
     # Store updated ELO ratings in Firestore
+    if elo_rating_doc_id:  # Check if the document ID was found
+        doc_ref = db.collection(config.IMAGE_RATINGS_COLLECTION_NAME).document(elo_rating_doc_id)
+        doc_ref.update(
+            {
+                "ratings": updated_ratings,
+                "timestamp": current_datetime,
+            }
+        )
+        print(f"ELO ratings updated in Firestore with document ID: {doc_ref.id}")
+    else:
+        # Document doesn't exist, create it
+        doc_ref = db.collection(config.IMAGE_RATINGS_COLLECTION_NAME).document()
+        doc_ref.set(
+            {
+                "type": "elo_rating",
+                "ratings": updated_ratings,
+                "timestamp": current_datetime,
+            }
+        )
 
-    doc_ref = db.collection(config.IMAGE_RATINGS_COLLECTION_NAME).document()
-    doc_ref.set(
-        {
-            "type": "elo_rating",
-            "ratings": updated_ratings,
-            "timestamp": current_datetime,
-        },
-        merge=True,
-    )
-
-    print(f"ELO ratings updated in Firestore with document ID: {doc_ref.id}")
+        print(f"ELO ratings created in Firestore with document ID: {doc_ref.id}")
 
     doc_ref = db.collection(config.IMAGE_RATINGS_COLLECTION_NAME).document()
     doc_ref.set(
