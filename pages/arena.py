@@ -68,6 +68,7 @@ class PageState:
     arena_model1: str = ""
     arena_model2: str = ""
     arena_output: list[str] = field(default_factory=lambda: [])
+    chosen_model: str = ""
     # pylint: disable=invalid-field-call
 
 
@@ -223,8 +224,15 @@ def on_click_arena_vote(e: me.ClickEvent):
     state = me.state(PageState)
     model_name = getattr(state, e.key)
     print(f"user preferred {e.key}: {model_name}")
-
-    on_click_reload_arena(e)
+    state.chosen_model = model_name
+    yield
+    time.sleep(1)
+    yield
+    state.arena_output.clear()
+    state.chosen_model = ""
+    state.arena_prompt = random_prompt()
+    yield
+    arena_images(state.arena_prompt)
     yield
 
 
@@ -367,18 +375,50 @@ def arena_page_content(app_state: me.state):
                                     )
                                 ):
                                     for idx, img in enumerate(page_state.arena_output):
+                                        model_name = f"arena_model{idx+1}"
+                                        model_value = getattr(page_state, model_name)
+
                                         img_url = img.replace(
                                             "gs://",
                                             "https://storage.mtls.cloud.google.com/",
                                         )
-                                        me.image(
-                                            src=f"{img_url}",
-                                            style=me.Style(
+                                        with me.box(
+                                            style=me.Style(align_items="center", justify_content="center", display="flex", flex_direction="column"),
+                                        ):
+                                            image_border_style = me.Style(
                                                 width="450px",
                                                 margin=me.Margin(top=10),
                                                 border_radius="35px",
-                                            ),
-                                        )
+                                            )
+                                            if page_state.chosen_model:
+                                                if page_state.chosen_model == model_value:
+                                                    # green border
+                                                    image_border_style = me.Style(
+                                                        width="450px",
+                                                        margin=me.Margin(top=10),
+                                                        border_radius="35px",
+                                                        border=me.Border().all(me.BorderSide(color="green", style="inset", width="5px"))
+                                                    )
+                                                else:
+                                                    # opaque
+                                                    image_border_style = me.Style(
+                                                        width="450px",
+                                                        margin=me.Margin(top=10),
+                                                        border_radius="35px",
+                                                        opacity=0.5,
+                                                    )
+                                            me.image(
+                                                src=f"{img_url}",
+                                                style=image_border_style,
+                                            )
+                                            
+                                            if page_state.chosen_model:
+                                                text_style = me.Style()
+                                                if page_state.chosen_model == model_value:
+                                                    text_style = me.Style(font_weight="bold")
+                                                me.text(model_value, style=text_style)
+                                            else:
+                                                me.box(style=me.Style(height=18))
 
                                 me.box(style=me.Style(height=15))
 
@@ -389,6 +429,7 @@ def arena_page_content(app_state: me.state):
                                         gap=50,
                                     )
                                 ):
+                                    # left choice button
                                     with me.content_button(
                                         type="flat",
                                         key="arena_model1",
@@ -401,13 +442,13 @@ def arena_page_content(app_state: me.state):
                                         ):
                                             me.icon("arrow_left")
                                             me.text("left")
-
+                                    # skip button
                                     me.button(
                                         label="skip",
                                         type="stroked",
                                         on_click=on_click_reload_arena,
                                     )
-
+                                    # right choice button
                                     with me.content_button(
                                         type="flat",
                                         key="arena_model2",
@@ -420,6 +461,9 @@ def arena_page_content(app_state: me.state):
                                         ):
                                             me.text("right")
                                             me.icon("arrow_right")
+                    # show user choice
+                    if page_state.chosen_model:
+                        me.text(f"You voted {page_state.chosen_model}")
 
 
 _BOX_STYLE = me.Style(
