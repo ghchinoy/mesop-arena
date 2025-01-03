@@ -228,12 +228,12 @@ def on_click_arena_vote(e: me.ClickEvent):
     model_name = getattr(state, e.key)
     print(f"user preferred {e.key}: {model_name}")
     state.chosen_model = model_name
-    
-    update_elo_ratings(state.arena_model1, state.arena_model2, model_name)
-    
+    # update the elo ratings
+    update_elo_ratings(state.arena_model1, state.arena_model2, model_name, state.arena_output)
     yield
     time.sleep(1)
     yield
+    # clear the output and reload
     state.arena_output.clear()
     state.chosen_model = ""
     state.arena_prompt = random_prompt()

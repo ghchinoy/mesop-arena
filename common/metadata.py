@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import datetime
+import pandas as pd
 
 from config.default import Default
 from models.set_up import ModelSetup, PersistenceSetup
@@ -45,7 +46,27 @@ def add_image_metadata(gcsuri: str, prompt: str, model: str):
     print(f"Image data stored in Firestore with document ID: {doc_ref.id}")
 
 
-def update_elo_ratings(model1, model2: str, winner: str):
+def get_elo_ratings():
+    """ Retrieve ELO ratings for models from Firestore """
+    # Fetch current ELO ratings from Firestore
+    doc_ref = (
+        db.collection(config.IMAGE_RATINGS_COLLECTION_NAME)
+        .where("type", "==", "elo_rating")
+        .get()
+    )
+    updated_ratings = {}
+    if doc_ref:
+        for doc in doc_ref:
+            ratings = doc.to_dict().get("ratings", {})
+            updated_ratings.update(ratings)
+    # Convert to DataFrame
+    df = pd.DataFrame(list(updated_ratings.items()), columns=['Model', 'ELO Rating'])
+    df = df.sort_values(by='ELO Rating', ascending=False)  # Sort by rating
+    df.reset_index(drop=True, inplace=True)  # Reset index
+    return df
+
+
+def update_elo_ratings(model1: str, model2: str, winner: str, images: list[str]):
     """Update ELO ratings for models"""
 
     current_datetime = datetime.datetime.now()
@@ -57,21 +78,21 @@ def update_elo_ratings(model1, model2: str, winner: str):
         .get()
     )
 
+    updated_ratings = {}
     if doc_ref:
         for doc in doc_ref:
             ratings = doc.to_dict().get("ratings", {})
-            elo_model1 = ratings.get(model1, 1000)  # Default to 1000 if not found
-            elo_model2 = ratings.get(model2, 1000)
-    else:
-        elo_model1 = 1000
-        elo_model2 = 1000
+            updated_ratings.update(ratings)
+
+    elo_model1 = updated_ratings.get(model1, 1000)  # Default to 1000 if not found
+    elo_model2 = updated_ratings.get(model2, 1000)
 
     # Calculate expected scores
     expected_model1 = 1 / (1 + 10 ** ((elo_model2 - elo_model1) / 400))
     expected_model2 = 1 / (1 + 10 ** ((elo_model1 - elo_model2) / 400))
 
     # Update ELO ratings based on the winner
-    k_factor = 32  # You can adjust this value
+    k_factor = config.ELO_K_FACTOR
     if winner == model1:
         elo_model1 = elo_model1 + k_factor * (1 - expected_model1)
         elo_model2 = elo_model2 + k_factor * (0 - expected_model2)
@@ -79,7 +100,8 @@ def update_elo_ratings(model1, model2: str, winner: str):
         elo_model1 = elo_model1 + k_factor * (0 - expected_model1)
         elo_model2 = elo_model2 + k_factor * (1 - expected_model2)
 
-    updated_ratings = {model1: round(elo_model1, 2), model2: round(elo_model2, 2)}
+    updated_ratings[model1] = round(elo_model1, 2)
+    updated_ratings[model2] = round(elo_model2, 2)
     
     print(f"Ratings: {updated_ratings}")
 
@@ -103,7 +125,9 @@ def update_elo_ratings(model1, model2: str, winner: str):
             "timestamp": current_datetime,
             "type": "vote",
             "model1": model1,
+            "image1": images[0],
             "model2": model2,
+            "image2": images[1],
             "winner": winner,
         }
     )

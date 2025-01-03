@@ -18,6 +18,7 @@ from components.page_scaffold import (
     page_scaffold,
     page_frame,
 )
+from common.metadata import get_elo_ratings
 
 
 def leaderboard_page_content(app_state: me.state):
@@ -26,4 +27,15 @@ def leaderboard_page_content(app_state: me.state):
         with page_frame():  # pylint: disable=not-context-manager
             header("Leaderboard", "leaderboard")
 
-            me.text(f"Hello, {app_state.name}!")
+            df = get_elo_ratings()
+
+            with me.box(style=me.Style(padding=me.Padding.all(10), width=500)):
+                me.table(
+                    df,
+                    #on_click=on_click,
+                    header=me.TableHeader(sticky=True),
+                    columns={
+                        "NA": me.TableColumn(sticky=True),
+                        "Index": me.TableColumn(sticky=True),
+                    },
+                )

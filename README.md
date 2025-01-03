@@ -50,8 +50,9 @@ PROJECT_ID=YOUR_PROJECT_ID  # from $(gcloud config get project)
 # LOCATION=us-central1  # defaults to "us-central1"
 MODEL_ID=gemini-2.0-flash-exp
 GENMEDIA_BUCKET=YOUR_MEDIA_BUCKET # like: ${PROJECT_ID}-genmedia
-# IMAGE_COLLECTION_NAME=<FIRESTORE_IMAGE_METADATA_COLLECTION>  # defaults to "arena_images"
-# IMAGE_RATINGS_COLLECTION_NAME=<FIRESTORE_IMAGE_MODEL_RATINGS_COLLECTION> # defaults to "arena_elo"
+# IMAGE_COLLECTION_NAME=arena_images  # defaults to "arena_images"
+# IMAGE_RATINGS_COLLECTION_NAME=arena_elo # defaults to "arena_elo"
+# ELO_K_FACTOR=32 # defaults to 32
 ```
 
 
