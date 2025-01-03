@@ -64,6 +64,42 @@ Start the app to explore
 mesop main.py
 ```
 
+
+## Deploy
+
+
+### Service Account
+Create a Service Account to run your service, and provide the following permissions to the Service Account
+
+* Cloud Run Invoker
+* Vertex AI User
+* Cloud Datastore User
+* Storage Object User
+
+```
+export PROJECT_ID=$(gcloud info --format='value(config.project)')
+
+export DESC="genmedia arena"
+export SA_NAME="sa-genmedia-arena"
+export SA_ID=${SA_NAME}@${PROJECT_ID}.iam.gserviceaccount.com
+
+# create a service account
+gcloud iam service-accounts create $SA_NAME --description $DESC --display-name $SA_NAME
+
+# assign vertex and cloud run roles
+gcloud projects add-iam-policy-binding $PROJECT_ID --member="serviceAccount:${SA_ID}" --role "roles/run.invoker"
+gcloud projects add-iam-policy-binding $PROJECT_ID --member="serviceAccount:${SA_ID}" --role "roles/aiplatform.user"
+gcloud projects add-iam-policy-binding $PROJECT_ID --member="serviceAccount:${SA_ID}" --role "roles/storage.objectUser"
+gcloud projects add-iam-policy-binding $PROJECT_ID --member="serviceAccount:${SA_ID}" --role "roles/datastore.user"
+```
+
+### Deploy
+
+```
+gcloud run deploy genmedia-arena --source . --service-account=$SA_ID --set-env-vars GENMEDIA_BUCKET=${PROJECT_ID}-genmedia --set-env-vars PROJECT_ID=${PROJECT_ID} --set-env-vars MODEL_ID=gemini-2.0-flash-exp --region us-central1
+```
+
+
 # Disclaimer
 
 This is not an official Google project
