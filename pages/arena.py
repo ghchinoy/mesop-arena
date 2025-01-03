@@ -152,7 +152,7 @@ def imagen_generate_images(model_name: str, prompt: str, aspect_ratio: str):
     print(f"prompt: {prompt}")
     print(f"target output: {config.GENMEDIA_BUCKET}")
 
-    vertexai.init(project="ghchinoy-genai-sa", location=config.LOCATION)
+    vertexai.init(project=config.PROJECT_ID, location=config.LOCATION)
 
     image_model = ImageGenerationModel.from_pretrained(model_name)
 
