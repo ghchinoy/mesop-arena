@@ -25,7 +25,10 @@ from vertexai.preview.vision_models import ImageGenerationModel
 
 import mesop as me
 
-from common.metadata import add_image_metadata
+from common.metadata import (
+    add_image_metadata,
+    update_elo_ratings,
+)
 from config.default import Default
 from state.state import AppState
 from components.header import header
@@ -225,6 +228,9 @@ def on_click_arena_vote(e: me.ClickEvent):
     model_name = getattr(state, e.key)
     print(f"user preferred {e.key}: {model_name}")
     state.chosen_model = model_name
+    
+    update_elo_ratings(state.arena_model1, state.arena_model2, model_name)
+    
     yield
     time.sleep(1)
     yield

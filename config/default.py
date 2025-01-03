@@ -38,6 +38,7 @@ class Default:
 
     GENMEDIA_BUCKET = os.environ.get("GENMEDIA_BUCKET")
     IMAGE_COLLECTION_NAME = os.environ.get("IMAGE_COLLECTION_NAME", "arena_images")
+    IMAGE_RATINGS_COLLECTION_NAME = os.environ.get("IMAGE_RATINGS_COLLECTION_NAME", "arena_elo")
 
     # image models
     MODEL_IMAGEN2 = "imagegeneration@006"
