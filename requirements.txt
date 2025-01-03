@@ -1,4 +1,7 @@
 mesop
+Flask
+gunicorn
+Werkzeug
 google-genai
 google-cloud-aiplatform
 google-cloud-storage
