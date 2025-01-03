@@ -24,5 +24,5 @@ class AppState:
     
     welcome_message: str = ""
 
-    name: str = "no name"
+    name: str = "World"
 
