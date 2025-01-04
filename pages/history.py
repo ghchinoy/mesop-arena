@@ -14,6 +14,9 @@
 """ History page"""
 import mesop as me
 
+from common.metadata import get_latest_votes
+
+
 from components.header import header
 from components.page_scaffold import (
     page_scaffold,
@@ -27,4 +30,19 @@ def history_page_content(app_state: me.state):
         with page_frame():  # pylint: disable=not-context-manager
             header("History", "history")
 
-            me.text(f"Hello, {app_state.name}!")
+            with me.box():
+                votes = get_latest_votes()
+                print(f"retrieved {len(votes)} votes")
+                for v in votes:
+                    model1 = v.get('model1')
+                    image1 = v.get('image1')
+                    model2 = v.get('model2')
+                    image2 = v.get('image2')
+                    winner = v.get('winner')
+                    timestamp = v.get('timestamp')
+                    with me.box(
+                        style=me.Style(
+                            padding=me.Padding.all(10),
+                        )
+                    ):
+                        me.text(f"At {timestamp}, {model1} ({image1}) competed against {model2} ({image2}) and {winner} won.")

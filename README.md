@@ -34,7 +34,7 @@ uv pip install -r requirements.txt
 Cloud Firestore is used to save generated image metadata and ELO scores for the leaderboard.
 
 * Create a collection called `arena_images` 
-* Create a collection called `arena_elo` 
+* Create a collection called `arena_elo`; this collection will require an index (type, timestamp, and __name__)
 
 These can be changed this via .env var `IMAGE_COLLECTION_NAME` and `IMAGE_RATINGS_COLLECTION_NAME`, respectively; see below.
 
