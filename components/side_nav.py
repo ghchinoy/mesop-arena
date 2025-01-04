@@ -187,10 +187,13 @@ def menu_item(
 
 def toggle_theme(e: me.ClickEvent):  # pylint: disable=unused-argument
     """Toggle theme event"""
+    s = me.state(AppState)
     if me.theme_brightness() == "light":
         me.set_theme_mode("dark")
+        s.theme_mode = "dark"
     else:
         me.set_theme_mode("light")
+        s.theme_mode = "light"
 
 
 def theme_toggle_icon(key: int, icon: str, text: str, min: bool = True):

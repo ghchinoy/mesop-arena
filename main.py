@@ -26,7 +26,9 @@ from pages.settings import settings_page_content
 
 def on_load(e: me.LoadEvent):  # pylint: disable=unused-argument
     """On load event"""
+    #print("load event", e) # this event looks like: LoadEvent(path='/') or LoadEvent(path='/leaderboard')
     s = me.state(AppState)
+    print("theme", s.theme_mode)
     if s.theme_mode:  # recall state theme mode
         me.set_theme_mode(s.theme_mode)
     else:
