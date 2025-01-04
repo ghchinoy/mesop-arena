@@ -31,7 +31,7 @@ class Default:
     """All configuration variables for this application are managed here."""
 
     # pylint: disable=invalid-name
-    PROJECT_ID: str = field(default_factory=lambda: os.environ.get("PROJECT_ID"))
+    PROJECT_ID: str = os.environ.get("PROJECT_ID")
     LOCATION: str = os.environ.get("LOCATION", "us-central1")
     MODEL_ID: str = os.environ.get("MODEL_ID", "gemini-2.0-flash-exp")
     INIT_VERTEX: bool = True
