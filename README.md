@@ -2,7 +2,7 @@
 
 This is an example of an arena & leaderboard to compare different image generation tools.
 
-Currently, it uses Imagen 2, Imagen 3, and Gemini 2.0 experimental's image generation models.
+Currently, it uses Imagen 2, Imagen 3, image generation models with Gemini 2.0 experimental's image output model forthcoming.
 
 The application is written in [Mesop](https://google.github.io/mesop/), a python UX framework, with the [Studio Scaffold starter](https://github.com/ghchinoy/studio-scaffold).
 
@@ -105,7 +105,12 @@ gcloud projects add-iam-policy-binding $PROJECT_ID --member="serviceAccount:${SA
 ### Deploy
 
 ```
-gcloud run deploy genmedia-arena --source . --service-account=$SA_ID --set-env-vars GENMEDIA_BUCKET=${PROJECT_ID}-genmedia --set-env-vars PROJECT_ID=${PROJECT_ID} --set-env-vars MODEL_ID=gemini-2.0-flash-exp --region us-central1
+gcloud run deploy genmedia-arena --source . \
+    --service-account=$SA_ID \
+    --set-env-vars GENMEDIA_BUCKET=${PROJECT_ID}-genmedia \
+    --set-env-vars PROJECT_ID=${PROJECT_ID} \
+    --set-env-vars MODEL_ID=gemini-2.0-flash-exp \
+    --region us-central1
 ```
 
 
