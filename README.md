@@ -9,6 +9,8 @@ The application is written in [Mesop](https://google.github.io/mesop/), a python
 
 ![](./assets/arena_view.png)
 
+![](./assets/latest-small.gif)
+
 
 ## Prerequisites
 
