@@ -229,7 +229,7 @@ def on_click_arena_vote(e: me.ClickEvent):
     print(f"user preferred {e.key}: {model_name}")
     state.chosen_model = model_name
     # update the elo ratings
-    update_elo_ratings(state.arena_model1, state.arena_model2, model_name, state.arena_output)
+    update_elo_ratings(state.arena_model1, state.arena_model2, model_name, state.arena_output, state.arena_prompt)
     yield
     time.sleep(1)
     yield

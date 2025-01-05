@@ -15,6 +15,8 @@
 import datetime
 import pandas as pd
 
+from google.cloud import firestore
+
 from config.default import Default
 from models.set_up import ModelSetup, PersistenceSetup
 
@@ -66,7 +68,7 @@ def get_elo_ratings():
     return df
 
 
-def update_elo_ratings(model1: str, model2: str, winner: str, images: list[str]):
+def update_elo_ratings(model1: str, model2: str, winner: str, images: list[str], prompt: str):
     """Update ELO ratings for models"""
 
     current_datetime = datetime.datetime.now()
@@ -140,7 +142,30 @@ def update_elo_ratings(model1: str, model2: str, winner: str, images: list[str])
             "model2": model2,
             "image2": images[1],
             "winner": winner,
+            "prompt": prompt,
         }
     )
 
     print(f"Vote updated in Firestore with document ID: {doc_ref.id}")
+
+
+def get_latest_votes(limit: int = 10):
+    """Retrieve the latest votes from Firestore, ordered by timestamp in descending order."""
+
+    try:
+        votes_ref = (
+            db.collection(config.IMAGE_RATINGS_COLLECTION_NAME)
+            .where("type", "==", "vote")
+            .order_by("timestamp", direction=firestore.Query.DESCENDING)
+            .limit(limit)
+        )
+
+        votes = []
+        for doc in votes_ref.stream():
+            votes.append(doc.to_dict())
+
+        return votes
+
+    except Exception as e:
+        print(f"Error fetching votes: {e}")
+        return []
