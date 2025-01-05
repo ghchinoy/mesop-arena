@@ -68,7 +68,7 @@ def get_elo_ratings():
     return df
 
 
-def update_elo_ratings(model1: str, model2: str, winner: str, images: list[str]):
+def update_elo_ratings(model1: str, model2: str, winner: str, images: list[str], prompt: str):
     """Update ELO ratings for models"""
 
     current_datetime = datetime.datetime.now()
@@ -142,6 +142,7 @@ def update_elo_ratings(model1: str, model2: str, winner: str, images: list[str])
             "model2": model2,
             "image2": images[1],
             "winner": winner,
+            "prompt": prompt,
         }
     )
 
