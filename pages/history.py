@@ -113,7 +113,7 @@ def history_page_content(app_state: me.state):
                                     )
 
                                 with me.content_button(
-                                    key=image1_url,
+                                    key=image2_url,
                                     on_click=on_click_image_dialog,
                                     style=me.Style(
                                         flex_direction="column",
