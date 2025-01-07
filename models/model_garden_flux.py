@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-""" Flux.1 model (Vertex AI Model Garden) """
+""" FLUX.1 model (Vertex AI Model Garden) """
 
 import base64
 import io
@@ -27,7 +27,6 @@ from google.cloud import aiplatform
 from config.default import Default
 from common.storage import store_to_gcs
 from common.metadata import add_image_metadata
-
 
 
 config = Default()
@@ -56,9 +55,9 @@ def flux_generate_images(model_name: str, prompt: str, aspect_ratio: str):
     start_time = time.time()
 
     arena_output = []
-    print(f"model: {model_name}")
-    print(f"prompt: {prompt}")
-    print(f"target output: {config.GENMEDIA_BUCKET}")
+    logging.info("model: %s", model_name)
+    logging.info("prompt: %s", prompt)
+    logging.info("target output: %s", config.GENMEDIA_BUCKET)
 
     aiplatform.init(project=config.PROJECT_ID, location=config.LOCATION)
 
@@ -82,8 +81,9 @@ def flux_generate_images(model_name: str, prompt: str, aspect_ratio: str):
     elapsed_time = end_time - start_time
 
     images = [
-        #base64_to_image(prediction.get("output")) for prediction in response.predictions
-        prediction.get("output") for prediction in response.predictions
+        # base64_to_image(prediction.get("output")) for prediction in response.predictions
+        prediction.get("output")
+        for prediction in response.predictions
     ]
 
     for idx, img in enumerate(images):
@@ -95,11 +95,9 @@ def flux_generate_images(model_name: str, prompt: str, aspect_ratio: str):
         )
 
         gcs_uri = store_to_gcs("flux1", f"{uuid.uuid4()}.png", "image/png", img, True)
-        gcs_uri = f"gs://{gcs_uri}" # append "gs://"
+        gcs_uri = f"gs://{gcs_uri}"  # append "gs://"
 
-        logging.info(
-            "generated image: %s len %s at %s", idx, len(img), gcs_uri
-        )
+        logging.info("generated image: %s len %s at %s", idx, len(img), gcs_uri)
         # output = img._as_base64_string()
         # state.image_output.append(output)
         arena_output.append(gcs_uri)

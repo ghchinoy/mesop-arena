@@ -14,7 +14,7 @@
 """ Default Configuration for GenMedia Arena """
 
 import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from dotenv import load_dotenv
 
 
@@ -46,7 +46,7 @@ class Default:
     MODEL_IMAGEN2 = "imagegeneration@006"
     MODEL_IMAGEN3_FAST = "imagen-3.0-fast-generate-001"
     MODEL_IMAGEN3 = "imagen-3.0-generate-001"
-    
+
     # model garden image models
     MODEL_FLUX1 = "black-forest-labs/FLUX.1-schnell"
     MODEL_FLUX1_ENDPOINT = "9021247714809085952" #"flux1-schnell-1736198391493@1"
