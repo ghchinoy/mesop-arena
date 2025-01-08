@@ -50,7 +50,7 @@ image_models = [
     Default.MODEL_IMAGEN2,
     Default.MODEL_IMAGEN3_FAST,
     Default.MODEL_IMAGEN3,
-    Default.MODEL_FLUX1,
+    # Default.MODEL_FLUX1,
     # "gemini2",
 ]
 
@@ -110,15 +110,18 @@ def arena_images(input: str):
             state.arena_output.append(generate_images(prompt))
 
         elif state.arena_model1.startswith(config.MODEL_FLUX1):
-            logging.info("model: %s", state.arena_model1)
-            futures.append(
-                executor.submit(
-                    flux_generate_images,
-                    state.arena_model1,
-                    prompt,
-                    state.image_aspect_ratio,
+            if config.MODEL_FLUX1_ENDPOINT:
+                logging.info("model: %s", state.arena_model1)
+                futures.append(
+                    executor.submit(
+                        flux_generate_images,
+                        state.arena_model1,
+                        prompt,
+                        state.image_aspect_ratio,
+                    )
                 )
-            )
+            else:
+                logging.info("no endpoint defined for %s", config.MODEL_FLUX1)
 
         # model 2
         if state.arena_model2.startswith("image"):
@@ -137,15 +140,18 @@ def arena_images(input: str):
             state.arena_output.append(generate_images(prompt))
 
         elif state.arena_model2.startswith(config.MODEL_FLUX1):
-            logging.info("model: %s", state.arena_model2)
-            futures.append(
-                executor.submit(
-                    flux_generate_images,
-                    state.arena_model2,
-                    prompt,
-                    state.image_aspect_ratio,
+            if config.MODEL_FLUX1_ENDPOINT:
+                logging.info("model: %s", state.arena_model2)
+                futures.append(
+                    executor.submit(
+                        flux_generate_images,
+                        state.arena_model2,
+                        prompt,
+                        state.image_aspect_ratio,
+                    )
                 )
-            )
+            else:
+                logging.info("no endpoint defined for %s", config.MODEL_FLUX1)
 
         for future in as_completed(futures):  # Wait for tasks to complete
             try:
