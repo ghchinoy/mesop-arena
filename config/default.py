@@ -49,7 +49,7 @@ class Default:
 
     # model garden image models
     MODEL_FLUX1 = "black-forest-labs/FLUX.1-schnell"
-    MODEL_FLUX1_ENDPOINT = "9021247714809085952" #"flux1-schnell-1736198391493@1"
+    MODEL_FLUX1_ENDPOINT = os.environ.get("FLUX1_MODEL_ID")
 
 
     # pylint: disable=invalid-name
