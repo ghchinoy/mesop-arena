@@ -34,12 +34,11 @@ from state.state import AppState
 from components.header import header
 
 from models.set_up import ModelSetup
-
 from models.gemini_model import (
     generate_content,
     generate_images,
 )
-
+from models.model_garden_flux import flux_generate_images
 
 # Initialize configuration
 client, model_id = ModelSetup.init()
@@ -51,8 +50,8 @@ image_models = [
     Default.MODEL_IMAGEN2,
     Default.MODEL_IMAGEN3_FAST,
     Default.MODEL_IMAGEN3,
+    # Default.MODEL_FLUX1,
     # "gemini2",
-    # "black-forest-labs/FLUX.1-schnell"
 ]
 
 
@@ -93,6 +92,7 @@ def arena_images(input: str):
     # print(f"model: {state.arena_model1}")
     # model1 = ImageGenerationModel.from_pretrained(state.arena_model1)
 
+        # model 1
         if state.arena_model1.startswith("image"):
             futures.append(
                 executor.submit(
@@ -109,6 +109,21 @@ def arena_images(input: str):
             logging.info("model: %s", state.arena_model1)
             state.arena_output.append(generate_images(prompt))
 
+        elif state.arena_model1.startswith(config.MODEL_FLUX1):
+            if config.MODEL_FLUX1_ENDPOINT:
+                logging.info("model: %s", state.arena_model1)
+                futures.append(
+                    executor.submit(
+                        flux_generate_images,
+                        state.arena_model1,
+                        prompt,
+                        state.image_aspect_ratio,
+                    )
+                )
+            else:
+                logging.info("no endpoint defined for %s", config.MODEL_FLUX1)
+
+        # model 2
         if state.arena_model2.startswith("image"):
             futures.append(
                 executor.submit(
@@ -120,9 +135,23 @@ def arena_images(input: str):
             )
             # state.arena_output.extend(imagen_generate_images(state.arena_model2, prompt, state.image_aspect_ratio))
 
-        elif state.arena_model1 == "gemini2":
+        elif state.arena_model2 == "gemini2":
             logging.info("model: %s", state.arena_model2)
             state.arena_output.append(generate_images(prompt))
+
+        elif state.arena_model2.startswith(config.MODEL_FLUX1):
+            if config.MODEL_FLUX1_ENDPOINT:
+                logging.info("model: %s", state.arena_model2)
+                futures.append(
+                    executor.submit(
+                        flux_generate_images,
+                        state.arena_model2,
+                        prompt,
+                        state.image_aspect_ratio,
+                    )
+                )
+            else:
+                logging.info("no endpoint defined for %s", config.MODEL_FLUX1)
 
         for future in as_completed(futures):  # Wait for tasks to complete
             try:
@@ -144,9 +173,9 @@ def imagen_generate_images(model_name: str, prompt: str, aspect_ratio: str):
     Returns:
         _type_: a list of strings (gcs uris of image output)
     """
-    
-    start_time = time.time() 
-    
+
+    start_time = time.time()
+
     arena_output = []
     print(f"model: {model_name}")
     print(f"prompt: {prompt}")
@@ -215,7 +244,7 @@ def on_click_reload_arena(e: me.ClickEvent):  # pylint: disable=unused-argument
 
     # get random images
     state.arena_model1, state.arena_model2 = random.sample(image_models, 2)
-    print(f"{state.arena_model1} vs. {state.arena_model2}")
+    print(f"BATTLE: {state.arena_model1} vs. {state.arena_model2}")
     arena_images(state.arena_prompt)
 
     state.is_loading = False

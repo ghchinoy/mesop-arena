@@ -115,6 +115,34 @@ gcloud run deploy genmedia-arena --source . \
     --region us-central1
 ```
 
+## Application Code Layout & Extending the App 
+
+The Arena application is an example of the Studio Scaffold. This includes the following components:
+
+Mesop Application modules
+
+* main.py - Mesop application main entry point
+* Components - Mesop UX components used in the Mesop application
+* Pages - Mesop UX Pages
+* State - Mesop State management
+* Config - Application and service configuration parameters
+
+Common Cloud and Generative AI Modules
+
+* Common - modules for interacting with Cloud services, sucn as Firestore, Storage
+* Models - Generative AI model modules
+
+
+### Extending the UX
+
+To extend the UX, for example, by adding pages - you'll add a Page, using UX components in Components, and then modify the components/side_nav.py to reference the Page for access in the navigation.
+
+### Extending the Model Capabilities
+
+To extend the model usage, for example adding in a Model Garden model such as [FLUX.1](https://console.cloud.google.com/vertex-ai/publishers/black-forest-labs/model-garden/flux1-schnell) - add the implementation of FLUX.1 image generation to the Models module, and then modify the UX to invoke that model in the `pages/arena.py` Page. This may also require adding in any explicit configurations to the Config module, `config/default.py`.
+
+Follow [Model Garden](https://cloud.google.com/vertex-ai/generative-ai/docs/model-garden/explore-models) instructions on how to deploy [FLUX.1](https://console.cloud.google.com/vertex-ai/publishers/black-forest-labs/model-garden/flux1-schnell). 
+
 
 # Disclaimer
 
