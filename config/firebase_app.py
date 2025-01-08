@@ -24,6 +24,6 @@ def initialize_firebase():
         return firestore.client()
     except ValueError:
         print("Firebase already initialized.")
-        return firestore.client() 
+        return firestore.client()
 
 initialize_firebase()
