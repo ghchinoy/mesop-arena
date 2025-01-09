@@ -13,6 +13,9 @@
 # limitations under the License.
 """ Gemini model methods """
 
+import uuid
+import logging
+
 from tenacity import (
     retry,
     wait_exponential,
@@ -30,11 +33,17 @@ import vertexai
 
 from models.set_up import ModelSetup
 
+from config.default import Default
+from common.storage import store_to_gcs
+from common.metadata import add_image_metadata
+
 
 # Initialize configuration
 client, model_id = ModelSetup.init()
 MODEL_ID = model_id
 
+config = Default()
+logging.basicConfig(level=logging.DEBUG)
 
 @retry(
     wait=wait_exponential(
@@ -52,14 +61,34 @@ def generate_images(prompt: str) -> str:
             model=MODEL_ID,
             contents=prompt,
             config=GenerateContentConfig(
-                response_modalities=["IMAGE"],
+                response_modalities=["IMAGE", "TEXT"],
             ),
         )
-        print(f"success! {response.candidates[0].content}")
-        return response.text
+        logging.info(len(response.candidates[0].content.parts))
+        for candidate in response.candidates:
+            for part in candidate.content.parts:
+                if part.inline_data:
+                    img_data = part.inline_data.data
+                    break
+        logging.info("success! inline_data.data length: %s", len(img_data))
+
+        gcs_uri = store_to_gcs("gemini-2.0-flash-exp", f"{uuid.uuid4()}.png", "image/png", img_data, False)
+        gcs_uri = f"gs://{gcs_uri}"
+        logging.info("response: \"%s\"", response.candidates[0].content.parts[0].text)
+        logging.info("gcs_uri: %s", gcs_uri)
+        
+        try:
+            add_image_metadata(gcs_uri, prompt, config.MODEL_GEMINI2)
+        except Exception as e:
+            if "DeadlineExceeded" in str(e):  # Check for timeout error
+                logging.error("Firestore timeout: %s", e)
+            else:
+                logging.error("Error adding image metadata: %s", e)
+
+        return [gcs_uri]
 
     except Exception as e:
-        print(f"error: {e}")
+        logging.error("error: %s", e)
         raise  # Re-raise the exception for tenacity to handle
 
 
@@ -82,9 +111,9 @@ def generate_content(prompt: str) -> str:
                 response_modalities=["TEXT"],
             ),
         )
-        print(f"success! {response.text}")
+        logging.info(f"success! {response.text}")
         return response.text
 
     except Exception as e:
-        print(f"error: {e}")
+        logging.error(f"error: {e}")
         raise  # Re-raise the exception for tenacity to handle

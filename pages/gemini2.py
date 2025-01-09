@@ -21,7 +21,6 @@ from tenacity import (
 
 import mesop as me
 
-from google import genai
 from google.genai.types import (
     GenerateContentConfig,
 )
