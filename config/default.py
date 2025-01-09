@@ -32,6 +32,7 @@ class Default:
 
     # pylint: disable=invalid-name
     PROJECT_ID: str = os.environ.get("PROJECT_ID")
+    GEMINI_PROJECT_ID: str = os.environ.get("GEMINI_PROJECT_ID")
     PROJECT_NUMBER: str = os.environ.get("PROJECT_NUMBER")
     LOCATION: str = os.environ.get("LOCATION", "us-central1")
     MODEL_ID: str = os.environ.get("MODEL_ID", "gemini-2.0-flash-exp")
@@ -46,6 +47,8 @@ class Default:
     MODEL_IMAGEN2 = "imagegeneration@006"
     MODEL_IMAGEN3_FAST = "imagen-3.0-fast-generate-001"
     MODEL_IMAGEN3 = "imagen-3.0-generate-001"
+
+    MODEL_GEMINI2 = "gemini-2.0-flash-exp"
 
     # model garden image models
     MODEL_FLUX1 = "black-forest-labs/FLUX.1-schnell"
