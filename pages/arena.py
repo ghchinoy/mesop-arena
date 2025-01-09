@@ -51,7 +51,7 @@ image_models = [
     Default.MODEL_IMAGEN3_FAST,
     Default.MODEL_IMAGEN3,
     # Default.MODEL_FLUX1,
-    # "gemini2",
+    Default.MODEL_GEMINI2,
 ]
 
 
@@ -82,6 +82,8 @@ def arena_images(input: str):
             input = state.arena_prompt
     state.arena_output.clear()
 
+    logging.info("BATTLE: %s vs. %s", state.arena_model1, state.arena_model2)
+
     prompt = input
     logging.info("prompt: %s", prompt)
     if state.image_negative_prompt_input:
@@ -105,9 +107,16 @@ def arena_images(input: str):
             # state.arena_output.extend(
             #    imagen_generate_images(state.arena_model1, prompt, state.image_aspect_ratio),
             # )
-        elif state.arena_model1 == "gemini2":
+        elif state.arena_model1.startswith(config.MODEL_GEMINI2):
             logging.info("model: %s", state.arena_model1)
-            state.arena_output.append(generate_images(prompt))
+            futures.append(
+                executor.submit(
+                    generate_images,
+                    prompt,
+
+                )
+            )
+            #state.arena_output.append(generate_images(prompt))
 
         elif state.arena_model1.startswith(config.MODEL_FLUX1):
             if config.MODEL_FLUX1_ENDPOINT:
@@ -135,9 +144,16 @@ def arena_images(input: str):
             )
             # state.arena_output.extend(imagen_generate_images(state.arena_model2, prompt, state.image_aspect_ratio))
 
-        elif state.arena_model2 == "gemini2":
+        elif state.arena_model2.startswith(config.MODEL_GEMINI2):
             logging.info("model: %s", state.arena_model2)
-            state.arena_output.append(generate_images(prompt))
+            futures.append(
+                executor.submit(
+                    generate_images,
+                    prompt,
+
+                )
+            )
+            #state.arena_output.append(generate_images(prompt))
 
         elif state.arena_model2.startswith(config.MODEL_FLUX1):
             if config.MODEL_FLUX1_ENDPOINT:
@@ -177,9 +193,9 @@ def imagen_generate_images(model_name: str, prompt: str, aspect_ratio: str):
     start_time = time.time()
 
     arena_output = []
-    print(f"model: {model_name}")
-    print(f"prompt: {prompt}")
-    print(f"target output: {config.GENMEDIA_BUCKET}")
+    logging.info(f"model: {model_name}")
+    logging.info(f"prompt: {prompt}")
+    logging.info(f"target output: {config.GENMEDIA_BUCKET}")
 
     vertexai.init(project=config.PROJECT_ID, location=config.LOCATION)
 
@@ -201,15 +217,15 @@ def imagen_generate_images(model_name: str, prompt: str, aspect_ratio: str):
     elapsed_time = end_time - start_time
 
     for idx, img in enumerate(response.images):
-        logging.info(f"Generated image {idx} with model {model_name} in {elapsed_time:.2f} seconds")
+        logging.info(f"Generated image: #{idx} with model {model_name} in {elapsed_time:.2f} seconds")
 
-        print(
-            f"generated image: {idx} len {len(img._as_base64_string())} at {img._gcs_uri}"
+        logging.info(
+            f"Generated image: #{idx}, len {len(img._as_base64_string())} at {img._gcs_uri}"
         )
         # output = img._as_base64_string()
         # state.image_output.append(output)
         arena_output.append(img._gcs_uri)
-        print(f"image created: {img._gcs_uri}")
+        logging.info(f"Image created: {img._gcs_uri}")
         try:
             add_image_metadata(img._gcs_uri, prompt, model_name)
         except Exception as e:
@@ -244,7 +260,7 @@ def on_click_reload_arena(e: me.ClickEvent):  # pylint: disable=unused-argument
 
     # get random images
     state.arena_model1, state.arena_model2 = random.sample(image_models, 2)
-    print(f"BATTLE: {state.arena_model1} vs. {state.arena_model2}")
+    
     arena_images(state.arena_prompt)
 
     state.is_loading = False
@@ -255,7 +271,7 @@ def on_click_arena_vote(e: me.ClickEvent):
     """Arena vote handler"""
     state = me.state(PageState)
     model_name = getattr(state, e.key)
-    print(f"user preferred {e.key}: {model_name}")
+    logging.info("user preferred %s: %s", e.key, model_name)
     state.chosen_model = model_name
     # update the elo ratings
     update_elo_ratings(state.arena_model1, state.arena_model2, model_name, state.arena_output, state.arena_prompt)
@@ -457,6 +473,11 @@ def arena_page_content(app_state: me.state):
 
                                 me.box(style=me.Style(height=15))
 
+                                if len(page_state.arena_output) != 2:
+                                    disabled_choice = True
+                                else:
+                                    disabled_choice = False
+
                                 with me.box(
                                     style=me.Style(
                                         flex_direction="row",
@@ -469,6 +490,7 @@ def arena_page_content(app_state: me.state):
                                         type="flat",
                                         key="arena_model1",
                                         on_click=on_click_arena_vote,
+                                        disabled=disabled_choice,
                                     ):
                                         with me.box(
                                             style=me.Style(
@@ -488,6 +510,7 @@ def arena_page_content(app_state: me.state):
                                         type="flat",
                                         key="arena_model2",
                                         on_click=on_click_arena_vote,
+                                        disabled=disabled_choice,
                                     ):
                                         with me.box(
                                             style=me.Style(
