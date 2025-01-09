@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import datetime
+import logging
 import pandas as pd
 
 from google.cloud import firestore
@@ -25,6 +26,8 @@ from models.set_up import ModelSetup, PersistenceSetup
 client, model_id = ModelSetup.init()
 MODEL_ID = model_id
 config = Default()
+
+logging.basicConfig(level=logging.DEBUG)
 
 db = PersistenceSetup.init()
 
@@ -45,7 +48,7 @@ def add_image_metadata(gcsuri: str, prompt: str, model: str):
         }
     )
 
-    print(f"Image data stored in Firestore with document ID: {doc_ref.id}")
+    logging.info(f"Image data stored in Firestore with document ID: {doc_ref.id}")
 
 
 def get_elo_ratings():
@@ -107,7 +110,7 @@ def update_elo_ratings(model1: str, model2: str, winner: str, images: list[str],
     updated_ratings[model1] = round(elo_model1, 2)
     updated_ratings[model2] = round(elo_model2, 2)
 
-    print(f"Ratings: {updated_ratings}")
+    logging.debug(f"Ratings: {updated_ratings}")
 
     # Store updated ELO ratings in Firestore
     if elo_rating_doc_id:  # Check if the document ID was found
@@ -118,7 +121,7 @@ def update_elo_ratings(model1: str, model2: str, winner: str, images: list[str],
                 "timestamp": current_datetime,
             }
         )
-        print(f"ELO ratings updated in Firestore with document ID: {doc_ref.id}")
+        logging.debug(f"ELO ratings updated in Firestore with document ID: {doc_ref.id}")
     else:
         # Document doesn't exist, create it
         doc_ref = db.collection(config.IMAGE_RATINGS_COLLECTION_NAME).document()
@@ -130,7 +133,7 @@ def update_elo_ratings(model1: str, model2: str, winner: str, images: list[str],
             }
         )
 
-        print(f"ELO ratings created in Firestore with document ID: {doc_ref.id}")
+        logging.debug(f"ELO ratings created in Firestore with document ID: {doc_ref.id}")
 
     doc_ref = db.collection(config.IMAGE_RATINGS_COLLECTION_NAME).document()
     doc_ref.set(
@@ -146,7 +149,7 @@ def update_elo_ratings(model1: str, model2: str, winner: str, images: list[str],
         }
     )
 
-    print(f"Vote updated in Firestore with document ID: {doc_ref.id}")
+    logging.debug(f"Vote updated in Firestore with document ID: {doc_ref.id}")
 
 
 def get_latest_votes(limit: int = 10):
@@ -167,5 +170,5 @@ def get_latest_votes(limit: int = 10):
         return votes
 
     except Exception as e:
-        print(f"Error fetching votes: {e}")
+        logging.error(f"Error fetching votes: {e}")
         return []

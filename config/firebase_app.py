@@ -12,18 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
+
 import firebase_admin
 from firebase_admin import credentials, firestore
+
+logging.basicConfig(level=logging.DEBUG)
 
 def initialize_firebase():
     """Initializes Firebase app."""
     try:
         cred = credentials.ApplicationDefault()
         firebase_admin.initialize_app(cred)
-        print("Firebase initialized successfully.")
+        logging.info("Firebase initialized successfully.")
         return firestore.client()
     except ValueError:
-        print("Firebase already initialized.")
+        logging.info("Firebase already initialized.")
         return firestore.client()
 
 initialize_firebase()
