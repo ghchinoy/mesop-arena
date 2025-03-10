@@ -33,13 +33,14 @@ class Default:
     # pylint: disable=invalid-name
     PROJECT_ID: str = os.environ.get("PROJECT_ID")
     LOCATION: str = os.environ.get("LOCATION", "us-central1")
-    MODEL_ID: str = os.environ.get("MODEL_ID", "gemini-2.0-flash-exp")
+    MODEL_ID: str = os.environ.get("MODEL_ID", "gemini-2.0-flash")
     INIT_VERTEX: bool = True
 
     GENMEDIA_BUCKET = os.environ.get("GENMEDIA_BUCKET")
+    IMAGE_FIREBASE_DB = os.environ.get("IMAGE_FIREBASE_DB", "")
     IMAGE_COLLECTION_NAME = os.environ.get("IMAGE_COLLECTION_NAME", "arena_images")
     IMAGE_RATINGS_COLLECTION_NAME = os.environ.get("IMAGE_RATINGS_COLLECTION_NAME", "arena_elo")
-    ELO_K_FACTOR = os.environ.get("ELO_K_FACTOR", 32)
+    ELO_K_FACTOR = int(os.environ.get("ELO_K_FACTOR", 32))
 
     # image models
     MODEL_IMAGEN2 = "imagegeneration@006"

@@ -11,3 +11,5 @@ tenacity
 firebase_admin
 google-cloud-firestore
 pandas
+fastparquet
+pyarrow

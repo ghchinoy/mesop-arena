@@ -16,12 +16,8 @@ from typing import Optional
 from dotenv import load_dotenv
 from google import genai
 
-from config.firebase_app import initialize_firebase
-#import firebase_admin
-#from firebase_admin import credentials, firestore
 
 from config.default import Default
-
 
 load_dotenv(override=True)
 
@@ -52,18 +48,5 @@ class ModelSetup:
             project=project_id,
             location=location,
         )
-
         return client, model_id
 
-
-class PersistenceSetup:
-    """persistence set up class"""
-
-    _client = None  # Class-level variable to store the Firestore client
-
-    @classmethod
-    def init(cls):
-        """Initializes the Firestore client if it hasn't been already."""
-        if cls._client is None:
-            cls._client = initialize_firebase()
-        return cls._client
