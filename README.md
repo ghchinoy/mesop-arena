@@ -13,6 +13,12 @@ The application is written in [Mesop](https://google.github.io/mesop/), a python
 
 
 ## Prerequisites
+The following APIs are required in your project:
+
+1. Vertex AI API
+1. Dataform API
+1. Compute Engine API
+1. Cloud Storage
 
 
 
@@ -33,20 +39,49 @@ uv pip install -r requirements.txt
 
 ### Cloud Firestore
 
-Cloud Firestore is used to save generated image metadata and ELO scores for the leaderboard.
+We will be using [Cloud Firestore](https://firebase.google.com/docs/firestore), a NoSQL cloud database that is part of the Firebase ecosystem and built on Google Cloud infrastructure, to save generated image metadata and ELO scores for the leaderboard.
 
-* Create a collection called `arena_images` 
-* Create a collection called `arena_elo`; this collection will require an index (type asc, timestamp desc)
+> If you're new to Firebase, a great starting point is [here](https://firebase.google.com/docs/projects/learn-more#firebase-cloud-relationship). 
 
-These can be changed this via .env var `IMAGE_COLLECTION_NAME` and `IMAGE_RATINGS_COLLECTION_NAME`, respectively; see below.
+Go to your Firebase project and create a database. Instructions on how to do this can be found [here](https://firebase.google.com/docs/firestore/quickstart).
 
-To create an index via the firebase command line tools:
+Next do the following steps:
 
+1. Create a collection called `arena_images`.
+1. Create a collection called `arena_elo`
+1. Create an index for `arena_elo` with two fields: `type` set to `ASC` and `timestamp` set to `DESC` and query scope set to `Collection Group`.
+
+
+The name of the collections can be changed via environment variables in the `.env` file. i.e. `IMAGE_COLLECTION_NAME` and `IMAGE_RATINGS_COLLECTION_NAME`, respectively.
+
+To verify your index has been created successfully, run the following command:
+
+```bash
+firebase firestore:indexes --database <DATABASE_NAME> --project <YOUR_PROJECT_ID>
 ```
-firebase firestore:indexes arena_elo \
-  --field=type,ASCENDING \
-  --field=timestamp,DESCENDING \
-  --query-scope=COLLECTION_GROUP
+
+The output should look like this:
+
+```json
+{
+  "indexes": [
+    {
+      "collectionGroup": "arena_elo",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        {
+          "fieldPath": "type",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "timestamp",
+          "order": "DESCENDING"
+        }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}
 ```
 
 
@@ -58,12 +93,12 @@ Enter these into a new file named `.env`
 
 ```
 PROJECT_ID=YOUR_PROJECT_ID  # from $(gcloud config get project)
-# LOCATION=us-central1  # defaults to "us-central1"
-MODEL_ID=gemini-2.0-flash-exp
+LOCATION=us-central1  # defaults to "us-central1"
+MODEL_ID=gemini-2.0-flash
 GENMEDIA_BUCKET=YOUR_MEDIA_BUCKET # like: ${PROJECT_ID}-genmedia
-# IMAGE_COLLECTION_NAME=arena_images  # defaults to "arena_images"
-# IMAGE_RATINGS_COLLECTION_NAME=arena_elo # defaults to "arena_elo"
-# ELO_K_FACTOR=32 # defaults to 32
+IMAGE_COLLECTION_NAME=arena_images  # defaults to "arena_images"
+IMAGE_RATINGS_COLLECTION_NAME=arena_elo # defaults to "arena_elo"
+ELO_K_FACTOR=32 # defaults to 32
 ```
 
 
@@ -111,7 +146,7 @@ gcloud run deploy genmedia-arena --source . \
     --service-account=$SA_ID \
     --set-env-vars GENMEDIA_BUCKET=${PROJECT_ID}-genmedia \
     --set-env-vars PROJECT_ID=${PROJECT_ID} \
-    --set-env-vars MODEL_ID=gemini-2.0-flash-exp \
+    --set-env-vars MODEL_ID=gemini-2.0-flash \
     --region us-central1
 ```
 

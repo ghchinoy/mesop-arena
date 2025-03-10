@@ -18,15 +18,15 @@ import pandas as pd
 from google.cloud import firestore
 
 from config.default import Default
-from models.set_up import ModelSetup, PersistenceSetup
+from config.firebase_config import FirebaseClient
+from models.set_up import ModelSetup
 
 
 # Initialize configuration
 client, model_id = ModelSetup.init()
 MODEL_ID = model_id
 config = Default()
-
-db = PersistenceSetup.init()
+db = FirebaseClient(database_id=config.IMAGE_FIREBASE_DB).get_client()
 
 
 def add_image_metadata(gcsuri: str, prompt: str, model: str):
