@@ -47,7 +47,8 @@ class Default:
     MODEL_IMAGEN2 = "imagegeneration@006"
     MODEL_IMAGEN3_FAST = "imagen-3.0-fast-generate-001"
     MODEL_IMAGEN3 = "imagen-3.0-generate-001"
-
+    MODEL_IMAGEN32 = "imagen-3.0-generate-002"
+    
     MODEL_GEMINI2 = "gemini-2.0-flash-exp"
 
     # model garden image models

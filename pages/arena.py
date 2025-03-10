@@ -50,7 +50,8 @@ image_models = [
     Default.MODEL_IMAGEN2,
     Default.MODEL_IMAGEN3_FAST,
     Default.MODEL_IMAGEN3,
-    # Default.MODEL_FLUX1,
+    Default.MODEL_IMAGEN32,
+    Default.MODEL_FLUX1,
     Default.MODEL_GEMINI2,
 ]
 
@@ -519,6 +520,13 @@ def arena_page_content(app_state: me.state):
                                         ):
                                             me.text("right")
                                             me.icon("arrow_right")
+                        else:
+                            # skip button
+                            me.button(
+                                label="skip",
+                                type="stroked",
+                                on_click=on_click_reload_arena,
+                            )
                     # show user choice
                     if page_state.chosen_model:
                         me.text(f"You voted {page_state.chosen_model}")
