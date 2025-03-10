@@ -11,19 +11,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 from typing import Optional
 from dotenv import load_dotenv
 from google import genai
-
-
+import threading
 from config.default import Default
 
 load_dotenv(override=True)
 
 
 class ModelSetup:
-    """model set up class"""
+    """Model set up class with caching and thread safety."""
+
+    _client_cache = {}
+    _lock = threading.Lock()
 
     @staticmethod
     def init(
@@ -31,7 +32,7 @@ class ModelSetup:
         location: Optional[str] = None,
         model_id: Optional[str] = None,
     ):
-        """initializes common model settings"""
+        """Initializes common model settings with caching and thread safety."""
 
         config = Default()
         if not project_id:
@@ -42,11 +43,17 @@ class ModelSetup:
             model_id = config.MODEL_ID
         if None in [project_id, location, model_id]:
             raise ValueError("All parameters must be set.")
-        print(f"initiating genai client with {project_id} in {location}")
-        client = genai.Client(
-            vertexai=config.INIT_VERTEX,
-            project=project_id,
-            location=location,
-        )
-        return client, model_id
-
+        
+        cache_key = (project_id, location, model_id)
+        with ModelSetup._lock:  # Acquire lock for thread safety
+            if cache_key not in ModelSetup._client_cache:
+                print(f"Initiating genai client with {project_id} in {location} using model: {model_id}")
+                client = genai.Client(
+                    vertexai=config.INIT_VERTEX,
+                    project=project_id,
+                    location=location,
+                )
+                ModelSetup._client_cache[cache_key] = client
+            else:
+                print(f"Using cached genai client for {project_id} in {location} using model: {model_id}")
+            return ModelSetup._client_cache[cache_key], model_id
