@@ -46,5 +46,32 @@ class Default:
     MODEL_IMAGEN2 = "imagegeneration@006"
     MODEL_IMAGEN3_FAST = "imagen-3.0-fast-generate-001"
     MODEL_IMAGEN3 = "imagen-3.0-generate-001"
+    MODEL_IMAGEN32 = "imagen-3.0-generate-002"
+    
+    MODEL_GEMINI2 = "gemini-2.0-flash"
+
+    # model garden image models
+    MODEL_FLUX1 = "black-forest-labs/FLUX.1-schnell"
+    MODEL_FLUX1_ENDPOINT_ID = os.environ.get("MODEL_FLUX1_ENDPOINT_ID")
+
+    def __post_init__(self):
+        """Validates the configuration variables after initialization."""
+
+        if not self.PROJECT_ID:
+            raise ValueError("PROJECT_ID environment variable is not set.")
+
+        if not self.GENMEDIA_BUCKET:
+            raise ValueError("GENMEDIA_BUCKET environment variable is not set.")
+
+        if not self.MODEL_FLUX1_ENDPOINT_ID:
+            raise ValueError("MODEL_FLUX1_ENDPOINT_ID environment variable is not set.")
+
+        if self.ELO_K_FACTOR <= 0:
+            raise ValueError("ELO_K_FACTOR must be a positive integer.")
+
+        valid_locations = ["us-central1", "us-east4", "europe-west4", "asia-east1"]  # example locations
+        if self.LOCATION not in valid_locations:
+            print(f"Warning: LOCATION {self.LOCATION} may not be valid.")
+        print("Configuration validated successfully.")
 
     # pylint: disable=invalid-name

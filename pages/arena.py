@@ -19,10 +19,6 @@ import logging
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-# from google.cloud import aiplatform
-import vertexai
-from vertexai.preview.vision_models import ImageGenerationModel
-
 import mesop as me
 
 from common.metadata import (
@@ -30,6 +26,7 @@ from common.metadata import (
     update_elo_ratings,
 )
 from config.default import Default
+from prompts.utils import PromptManager
 from state.state import AppState
 from components.header import header
 
@@ -39,21 +36,22 @@ from models.gemini_model import (
     generate_content,
     generate_images,
 )
+from models.generate import images_from_flux, images_from_imagen
 
 
 # Initialize configuration
 client, model_id = ModelSetup.init()
 MODEL_ID = model_id
 config = Default()
+prompt_manager = PromptManager()
 logging.basicConfig(level=logging.DEBUG)
 
-image_models = [
-    Default.MODEL_IMAGEN2,
-    Default.MODEL_IMAGEN3_FAST,
-    Default.MODEL_IMAGEN3,
-    # "gemini2",
-    # "black-forest-labs/FLUX.1-schnell"
-]
+
+IMAGEN_MODELS = [config.MODEL_IMAGEN2, config.MODEL_IMAGEN3_FAST, config.MODEL_IMAGEN3, config.MODEL_IMAGEN32,]
+FLUX_MODELS = [config.MODEL_FLUX1]
+GEMINI_MODELS = [config.MODEL_GEMINI2]
+
+IMAGE_GEN_MODELS = IMAGEN_MODELS + FLUX_MODELS + GEMINI_MODELS
 
 
 @me.stateclass
@@ -83,6 +81,8 @@ def arena_images(input: str):
             input = state.arena_prompt
     state.arena_output.clear()
 
+    logging.info("BATTLE: %s vs. %s", state.arena_model1, state.arena_model2)
+
     prompt = input
     logging.info("prompt: %s", prompt)
     if state.image_negative_prompt_input:
@@ -90,123 +90,87 @@ def arena_images(input: str):
 
     with ThreadPoolExecutor() as executor:  # Create a thread pool
         futures = []
-    # print(f"model: {state.arena_model1}")
-    # model1 = ImageGenerationModel.from_pretrained(state.arena_model1)
 
-        if state.arena_model1.startswith("image"):
+        # model 1
+        if state.arena_model1 in IMAGEN_MODELS:
+            logging.info("model 1: %s", state.arena_model1)
             futures.append(
                 executor.submit(
-                    imagen_generate_images,
+                    images_from_imagen,
                     state.arena_model1,
                     prompt,
                     state.image_aspect_ratio,
                 )
             )
-            # state.arena_output.extend(
-            #    imagen_generate_images(state.arena_model1, prompt, state.image_aspect_ratio),
-            # )
-        elif state.arena_model1 == "gemini2":
-            logging.info("model: %s", state.arena_model1)
-            state.arena_output.append(generate_images(prompt))
-
-        if state.arena_model2.startswith("image"):
+        elif state.arena_model1.startswith(config.MODEL_GEMINI2):
+            logging.info("model 1: %s", state.arena_model1)
             futures.append(
                 executor.submit(
-                    imagen_generate_images,
+                    generate_images,
+                    prompt,
+                )
+            )
+        elif state.arena_model1 in FLUX_MODELS:
+            if config.MODEL_FLUX1_ENDPOINT_ID:
+                logging.info("model 1: %s", state.arena_model1)
+                futures.append(
+                    executor.submit(
+                        images_from_flux,
+                        state.arena_model1,
+                        prompt,
+                        state.image_aspect_ratio,
+                    )
+                )
+            else:
+                logging.error("no endpoint defined for %s", state.arena_model1)
+
+        # model 2
+        if state.arena_model2 in IMAGEN_MODELS:
+            logging.info("model 2: %s", state.arena_model2)
+            futures.append(
+                executor.submit(
+                    images_from_imagen,
                     state.arena_model2,
                     prompt,
                     state.image_aspect_ratio,
                 )
             )
-            # state.arena_output.extend(imagen_generate_images(state.arena_model2, prompt, state.image_aspect_ratio))
-
-        elif state.arena_model1 == "gemini2":
-            logging.info("model: %s", state.arena_model2)
-            state.arena_output.append(generate_images(prompt))
+        elif state.arena_model2.startswith(config.MODEL_GEMINI2):
+            logging.info("model 2: %s", state.arena_model2)
+            futures.append(
+                executor.submit(
+                    generate_images,
+                    prompt,
+                )
+            )
+        elif state.arena_model2 in FLUX_MODELS:
+            if config.MODEL_FLUX1_ENDPOINT_ID:
+                logging.info("model 2: %s", state.arena_model2)
+                futures.append(
+                    executor.submit(
+                        images_from_flux,
+                        state.arena_model2,
+                        prompt,
+                        state.image_aspect_ratio,
+                    )
+                )
+            else:
+                logging.error("no endpoint defined for %s", state.arena_model2)
 
         for future in as_completed(futures):  # Wait for tasks to complete
             try:
                 result = future.result()  # Get the result of each task
                 state.arena_output.extend(
                     result
-                )  # Assuming imagen_generate_images returns a list
+                )  # Assuming images_from_imagen returns a list
             except Exception as e:
                 logging.error(f"Error during image generation: {e}")
-
-
-
-def imagen_generate_images(model_name: str, prompt: str, aspect_ratio: str):
-    """creates images from Imagen and returns a list of gcs uris
-    Args:
-        model_name (str): imagen model name
-        prompt (str): prompt for t2i model
-        aspect_ratio (str): aspect ratio string
-    Returns:
-        _type_: a list of strings (gcs uris of image output)
-    """
-    
-    start_time = time.time() 
-    
-    arena_output = []
-    print(f"model: {model_name}")
-    print(f"prompt: {prompt}")
-    print(f"target output: {config.GENMEDIA_BUCKET}")
-
-    vertexai.init(project=config.PROJECT_ID, location=config.LOCATION)
-
-    image_model = ImageGenerationModel.from_pretrained(model_name)
-
-    response = image_model.generate_images(
-        prompt=prompt,
-        add_watermark=True,
-        # aspect_ratio=getattr(state, "image_aspect_ratio"),
-        aspect_ratio=aspect_ratio,
-        number_of_images=1,
-        output_gcs_uri=f"gs://{config.GENMEDIA_BUCKET}",
-        language="auto",
-        # negative_prompt=state.image_negative_prompt_input,
-        safety_filter_level="block_few",
-        # include_rai_reason=True,
-    )
-    end_time = time.time()
-    elapsed_time = end_time - start_time
-
-    for idx, img in enumerate(response.images):
-        logging.info(f"Generated image {idx} with model {model_name} in {elapsed_time:.2f} seconds")
-
-        print(
-            f"generated image: {idx} len {len(img._as_base64_string())} at {img._gcs_uri}"
-        )
-        # output = img._as_base64_string()
-        # state.image_output.append(output)
-        arena_output.append(img._gcs_uri)
-        print(f"image created: {img._gcs_uri}")
-        try:
-            add_image_metadata(img._gcs_uri, prompt, model_name)
-        except Exception as e:
-            if "DeadlineExceeded" in str(e):  # Check for timeout error
-                logging.error(f"Firestore timeout: {e}")
-            else:
-                logging.error(f"Error adding image metadata: {e}")
-
-    return arena_output
-
-
-def random_prompt() -> str:
-    """return a random image generation prompt"""
-    # get a random prompt
-    with open("imagen_prompts.json", "r") as file:
-        data = file.read()
-    prompts = json.loads(data)
-    prompt = random.choice(prompts["imagen"])
-    return prompt
-
 
 def on_click_reload_arena(e: me.ClickEvent):  # pylint: disable=unused-argument
     """Reload arena handler"""
     state = me.state(PageState)
 
-    state.arena_prompt = random_prompt()
+    state.arena_prompt = prompt_manager.random_prompt()
 
     state.arena_output.clear()
 
@@ -214,8 +178,8 @@ def on_click_reload_arena(e: me.ClickEvent):  # pylint: disable=unused-argument
     yield
 
     # get random images
-    state.arena_model1, state.arena_model2 = random.sample(image_models, 2)
-    print(f"{state.arena_model1} vs. {state.arena_model2}")
+    state.arena_model1, state.arena_model2 = random.sample(IMAGE_GEN_MODELS, 2)
+    logging.info("%s vs. %s", state.arena_model1, state.arena_model2)
     arena_images(state.arena_prompt)
 
     state.is_loading = False
@@ -226,7 +190,7 @@ def on_click_arena_vote(e: me.ClickEvent):
     """Arena vote handler"""
     state = me.state(PageState)
     model_name = getattr(state, e.key)
-    print(f"user preferred {e.key}: {model_name}")
+    logging.info("user preferred %s: %s", e.key, model_name)
     state.chosen_model = model_name
     # update the elo ratings
     update_elo_ratings(state.arena_model1, state.arena_model2, model_name, state.arena_output, state.arena_prompt)
@@ -236,7 +200,7 @@ def on_click_arena_vote(e: me.ClickEvent):
     # clear the output and reload
     state.arena_output.clear()
     state.chosen_model = ""
-    state.arena_prompt = random_prompt()
+    state.arena_prompt = prompt_manager.random_prompt()
     yield
     arena_images(state.arena_prompt)
     yield
@@ -269,11 +233,10 @@ def arena_page_content(app_state: me.state):
     if not app_state.welcome_message:
         app_state.welcome_message = generate_welcome()
     if not page_state.arena_prompt:
-        page_state.arena_prompt = random_prompt()
+        page_state.arena_prompt = prompt_manager.random_prompt()
         page_state.arena_model1 = config.MODEL_IMAGEN2
         page_state.arena_model2 = config.MODEL_IMAGEN3_FAST
         arena_images(page_state.arena_prompt)
-        # imagen_generate_images(Default.MODEL_IMAGEN3_FAST, page_state.arena_prompt, "1:1")
 
     with me.box(
         style=me.Style(
@@ -352,11 +315,6 @@ def arena_page_content(app_state: me.state):
 
                     # Image outputs
                     with me.box(style=_BOX_STYLE):
-                        # with me.box(style=me.Style(align_content="center")):
-                        # me.text(
-                        #    "Select the image you prefer for the prompt above",
-                        #    style=me.Style(font_weight=500),
-                        # )
                         if page_state.is_loading:
                             with me.box(
                                 style=me.Style(
@@ -428,6 +386,11 @@ def arena_page_content(app_state: me.state):
 
                                 me.box(style=me.Style(height=15))
 
+                                if len(page_state.arena_output) != 2:
+                                    disabled_choice = True
+                                else:
+                                    disabled_choice = False
+
                                 with me.box(
                                     style=me.Style(
                                         flex_direction="row",
@@ -440,6 +403,7 @@ def arena_page_content(app_state: me.state):
                                         type="flat",
                                         key="arena_model1",
                                         on_click=on_click_arena_vote,
+                                        disabled=disabled_choice,
                                     ):
                                         with me.box(
                                             style=me.Style(
@@ -459,6 +423,7 @@ def arena_page_content(app_state: me.state):
                                         type="flat",
                                         key="arena_model2",
                                         on_click=on_click_arena_vote,
+                                        disabled=disabled_choice,
                                     ):
                                         with me.box(
                                             style=me.Style(
@@ -467,6 +432,13 @@ def arena_page_content(app_state: me.state):
                                         ):
                                             me.text("right")
                                             me.icon("arrow_right")
+                        else:
+                            # skip button
+                            me.button(
+                                label="skip",
+                                type="stroked",
+                                on_click=on_click_reload_arena,
+                            )
                     # show user choice
                     if page_state.chosen_model:
                         me.text(f"You voted {page_state.chosen_model}")
