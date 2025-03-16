@@ -13,3 +13,4 @@ google-cloud-firestore
 pandas
 fastparquet
 pyarrow
+pillow 

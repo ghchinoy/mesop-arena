@@ -20,7 +20,6 @@ from tenacity import (
     retry_if_exception_type,
 )
 
-from google.cloud import aiplatform
 from google import genai
 from google.genai.types import (
     GenerateContentConfig,
