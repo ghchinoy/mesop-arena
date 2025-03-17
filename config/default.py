@@ -64,7 +64,7 @@ class Default:
             raise ValueError("GENMEDIA_BUCKET environment variable is not set.")
 
         if not self.MODEL_FLUX1_ENDPOINT_ID:
-            raise ValueError("MODEL_FLUX1_ENDPOINT_ID environment variable is not set.")
+            print("MODEL_FLUX1_ENDPOINT_ID environment variable is not set. List of models will exclude flux1") # Optional: List of models will exclude flux1
 
         if self.ELO_K_FACTOR <= 0:
             raise ValueError("ELO_K_FACTOR must be a positive integer.")

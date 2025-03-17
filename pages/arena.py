@@ -48,10 +48,13 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 IMAGEN_MODELS = [config.MODEL_IMAGEN2, config.MODEL_IMAGEN3_FAST, config.MODEL_IMAGEN3, config.MODEL_IMAGEN32,]
-FLUX_MODELS = [config.MODEL_FLUX1]
 GEMINI_MODELS = [config.MODEL_GEMINI2]
 
-IMAGE_GEN_MODELS = IMAGEN_MODELS + FLUX_MODELS + GEMINI_MODELS
+# List of all image generation models
+# Check if flux1 endpoint is defined
+IMAGE_GEN_MODELS = IMAGEN_MODELS + GEMINI_MODELS
+if config.MODEL_FLUX1_ENDPOINT_ID:
+    IMAGE_GEN_MODELS.append(config.MODEL_FLUX1)
 
 
 @me.stateclass
