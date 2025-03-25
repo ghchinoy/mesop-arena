@@ -50,7 +50,7 @@ class PromptManager:
             PromptManager._load_prompts(self, fallback_to_default=True)
 
         except gapic_exceptions.Unauthorized:
-            raise ("Error: Unauthorized to access requested blob.")
+            print("Error: Unauthorized to access requested blob.")
 
         except json.JSONDecodeError as e:
             print("Error: Requested blob is not a valid JSON. ", e)
