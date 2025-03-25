@@ -12,13 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """ Utility functions for prompts """
-
+from __future__ import annotations
 import json
 import random
 
 from google.api_core import exceptions as gapic_exceptions
 
 from common.storage import download_gcs_blob
+from config.default import Default
+
+config = Default()
 
 class PromptManager:
     """Singleton class to manage and provide image generation prompts"""
@@ -30,25 +33,33 @@ class PromptManager:
             cls._instance._load_prompts()
         return cls._instance
 
-    def _load_prompts(self):
-        """Loads prompts from the GCS blob into memory."""
+    def _load_prompts(self, fallback_to_default: bool = False):
+        """Loads prompts from the GCS blob into memory. Falls back to default prompt list."""
         self.prompts = {"prompts": []} #initialize to empty list to avoid errors.
         try:
-            prompt_file = download_gcs_blob(gs_uri="gs://n25-vertex-ai-demos-1-genmedia/prompts/_alt_final_prompts.json")
-            prompt_file = prompt_file.decode("utf-8")
-            self.prompts = json.loads(prompt_file)
+            if not fallback_to_default:
+                prompt_file = download_gcs_blob(gs_uri=config.NEXT25_STUDY_PROMPTS_URI)
+                prompt_file = prompt_file.decode("utf-8")
+                self.prompts = json.loads(prompt_file)
+            else:
+                with open("imagen_prompts.json", "r") as f:
+                    self.prompts = json.load(f)
 
         except gapic_exceptions.NotFound:
-            print("Error: Requested blob not found.")
+            print("Error: Requested blob not found, loading the default prompt list.")
+            PromptManager._load_prompts(self, fallback_to_default=True)
 
         except gapic_exceptions.Unauthorized:
-            print("Error: Unauthorized to access requested blob.")
+            raise ("Error: Unauthorized to access requested blob.")
 
         except json.JSONDecodeError as e:
             print("Error: Requested blob is not a valid JSON. ", e)
         
         except UnicodeDecodeError as e:
             print("Error: Failed to decode requested blob. ", e)
+        
+        except FileNotFoundError:
+            print("Error: imagen_prompts.json not found.")
 
     def random_prompt(self) -> str:
         """Returns a random image generation prompt."""
