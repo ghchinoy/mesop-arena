@@ -113,7 +113,7 @@ def arena_images(input: str):
                     prompt,
                 )
             )
-        elif state.arena_model1 in FLUX_MODELS:
+        elif state.arena_model1.startswith(config.MODEL_FLUX1):
             if config.MODEL_FLUX1_ENDPOINT_ID:
                 logging.info("model 1: %s", state.arena_model1)
                 futures.append(
@@ -146,7 +146,7 @@ def arena_images(input: str):
                     prompt,
                 )
             )
-        elif state.arena_model2 in FLUX_MODELS:
+        elif state.arena_model2.startswith(config.MODEL_FLUX1):
             if config.MODEL_FLUX1_ENDPOINT_ID:
                 logging.info("model 2: %s", state.arena_model2)
                 futures.append(
