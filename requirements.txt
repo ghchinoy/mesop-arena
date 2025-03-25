@@ -15,4 +15,4 @@ fastparquet
 pyarrow
 pillow 
 alive_progress
-python-fire 
+fire
