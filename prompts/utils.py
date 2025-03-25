@@ -16,6 +16,10 @@
 import json
 import random
 
+from google.api_core import exceptions as gapic_exceptions
+
+from common.storage import download_gcs_blob
+
 class PromptManager:
     """Singleton class to manage and provide image generation prompts"""
     _instance = None
@@ -27,22 +31,29 @@ class PromptManager:
         return cls._instance
 
     def _load_prompts(self):
-        """Loads prompts from the JSON file into memory."""
+        """Loads prompts from the GCS blob into memory."""
+        self.prompts = {"prompts": []} #initialize to empty list to avoid errors.
         try:
-            with open("imagen_prompts.json", "r") as file:
-                data = file.read()
-            self.prompts = json.loads(data)
-        except FileNotFoundError:
-            print("Error: imagen_prompts.json not found.")
-            self.prompts = {"imagen": []} #initialize to empty list to avoid errors.
-        except json.JSONDecodeError:
-            print("Error: imagen_prompts.json is not valid JSON.")
-            self.prompts = {"imagen": []}
+            prompt_file = download_gcs_blob(gs_uri="gs://n25-vertex-ai-demos-1-genmedia/prompts/_alt_final_prompts.json")
+            prompt_file = prompt_file.decode("utf-8")
+            self.prompts = json.loads(prompt_file)
+
+        except gapic_exceptions.NotFound:
+            print("Error: Requested blob not found.")
+
+        except gapic_exceptions.Unauthorized:
+            print("Error: Unauthorized to access requested blob.")
+
+        except json.JSONDecodeError as e:
+            print("Error: Requested blob is not a valid JSON. ", e)
+        
+        except UnicodeDecodeError as e:
+            print("Error: Failed to decode requested blob. ", e)
 
     def random_prompt(self) -> str:
         """Returns a random image generation prompt."""
-        if self.prompts and self.prompts["imagen"]:
-            return random.choice(self.prompts["imagen"])
+        if self.prompts and self.prompts["prompts"]:
+            return random.choice(self.prompts["prompts"])
         else:
             return "Default prompt: No prompts available."  # Handle empty prompt list
 
