@@ -27,27 +27,40 @@ class PromptManager:
     """Singleton class to manage and provide image generation prompts"""
     _instance = None
 
+    _prompts_location: str = "prompts/imagen_prompts.json"
+    
+    @property
+    def prompts_location(self) -> str:
+        return self._prompts_location
+
+    @prompts_location.setter
+    def prompts_location(self, new_location: str):
+        if self._prompts_location == new_location:
+            return
+        self._prompts_location = new_location
+        self._instance._load_prompts()
+
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super(PromptManager, cls).__new__(cls)
             cls._instance._load_prompts()
         return cls._instance
 
-    def _load_prompts(self, fallback_to_default: bool = False):
+    def _load_prompts(self):
         """Loads prompts from the GCS blob into memory. Falls back to default prompt list."""
         self.prompts = {"prompts": []} #initialize to empty list to avoid errors.
         try:
-            if not fallback_to_default:
-                prompt_file = download_gcs_blob(gs_uri=config.NEXT25_STUDY_PROMPTS_URI)
+            if self.prompts_location.startswith("gs://"):
+                prompt_file = download_gcs_blob(gs_uri=self.prompts_location)
                 prompt_file = prompt_file.decode("utf-8")
                 self.prompts = json.loads(prompt_file)
             else:
-                with open("imagen_prompts.json", "r") as f:
+                with open("prompts/imagen_prompts.json", "r") as f:
                     self.prompts = json.load(f)
 
         except gapic_exceptions.NotFound:
             print("Error: Requested blob not found, loading the default prompt list.")
-            PromptManager._load_prompts(self, fallback_to_default=True)
+            self.prompts_location = "imagen_prompts.json"
 
         except gapic_exceptions.Unauthorized:
             print("Error: Unauthorized to access requested blob.")

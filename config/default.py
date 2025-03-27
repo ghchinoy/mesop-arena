@@ -39,6 +39,7 @@ class Default:
     GENMEDIA_BUCKET = os.environ.get("GENMEDIA_BUCKET")
     IMAGE_FIREBASE_DB = os.environ.get("IMAGE_FIREBASE_DB", "")
     IMAGE_COLLECTION_NAME = os.environ.get("IMAGE_COLLECTION_NAME", "arena_images")
+    STUDY_COLLECTION_NAME = os.environ.get("STUDY_COLLECTION_NAME", "arena_study")
     IMAGE_RATINGS_COLLECTION_NAME = os.environ.get("IMAGE_RATINGS_COLLECTION_NAME", "arena_elo")
     ELO_K_FACTOR = int(os.environ.get("ELO_K_FACTOR", 32))
 
@@ -53,9 +54,6 @@ class Default:
     # model garden image models
     MODEL_FLUX1 = "black-forest-labs/FLUX.1-schnell"
     MODEL_FLUX1_ENDPOINT_ID = os.environ.get("MODEL_FLUX1_ENDPOINT_ID")
-
-    # next25 study prompt uri
-    NEXT25_STUDY_PROMPTS_URI = "gs://n25-vertex-ai-demos-1-genmedia/prompts/_alt_final_prompts.json"
 
     def __post_init__(self):
         """Validates the configuration variables after initialization."""
