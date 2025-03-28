@@ -27,7 +27,7 @@ class PromptManager:
     """Singleton class to manage and provide image generation prompts"""
     _instance = None
 
-    _prompts_location: str = "prompts/imagen_prompts.json"
+    _prompts_location: str = config.DEFAULT_PROMPTS
     
     @property
     def prompts_location(self) -> str:
@@ -55,12 +55,12 @@ class PromptManager:
                 prompt_file = prompt_file.decode("utf-8")
                 self.prompts = json.loads(prompt_file)
             else:
-                with open("prompts/imagen_prompts.json", "r") as f:
+                with open(config.DEFAULT_PROMPTS, "r") as f:
                     self.prompts = json.load(f)
 
         except gapic_exceptions.NotFound:
             print("Error: Requested blob not found, loading the default prompt list.")
-            self.prompts_location = "imagen_prompts.json"
+            self.prompts_location = config.DEFAULT_PROMPTS
 
         except gapic_exceptions.Unauthorized:
             print("Error: Unauthorized to access requested blob.")
