@@ -95,7 +95,6 @@ The repository has a file named `.env.template` that you can use as a template.
 
 ```
 PROJECT_ID=<YOUR_PROJECT_ID>
-GENMEDIA_GENERATED_BUCKET=${PROJECT_ID}-genmedia
 GENMEDIA_BUCKET=${PROJECT_ID}-genmedia
 GEMINI_PROJECT_ID=<YOUR_PROJECT_ID_WITH_GEMINI_API_ACCESS>
 LOCATION="us-central1"
