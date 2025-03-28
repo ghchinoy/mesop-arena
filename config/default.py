@@ -32,7 +32,6 @@ class Default:
 
     # pylint: disable=invalid-name
     PROJECT_ID: str = os.environ.get("PROJECT_ID")
-    DEMO_PROJECT_ID: str = os.environ.get("DEMO_PROJECT_ID")
     LOCATION: str = os.environ.get("LOCATION", "us-central1")
     MODEL_ID: str = os.environ.get("MODEL_ID", "gemini-2.0-flash")
     INIT_VERTEX: bool = True
@@ -64,9 +63,6 @@ class Default:
         
         if not self.GENMEDIA_GENERATED_BUCKET:
             raise ValueError("GENMEDIA_GENERATED_BUCKET environment variable is not set.")
-        
-        if not self.DEMO_PROJECT_ID:
-            raise ValueError("DEMO_PROJECT_ID environment variable is not set.")
 
         if not self.GENMEDIA_BUCKET:
             raise ValueError("GENMEDIA_BUCKET environment variable is not set.")

@@ -143,7 +143,7 @@ def main(
     verbose: bool = False,
     skip_if_exists: bool = False,
     extensions: Optional[str] = ".json,png",
-    project_id: Optional[str] = config.DEMO_PROJECT_ID,
+    project_id: Optional[str] = config.PROJECT_ID,
 ):
     """
     Uploads files from a local directory to a GCS bucket.
