@@ -71,15 +71,21 @@ This Python script uploads files from a local directory to a Google Cloud Storag
 2. **Run the Script:** Execute the script from your terminal, providing the necessary command-line arguments:
 
     ```bash
-    python gcs_bulk_uploader.py --bucket_name YOUR_BUCKET_NAME --source_directory /path/to/local/directory [OPTIONS]
+    python -m gcs_bulk_uploader --bucket_name YOUR_BUCKET_NAME --source_directory /path/to/local/directory [OPTIONS]
     ```
 
-    * Replace `YOUR_BUCKET_NAME` with the name of your GCS bucket.
-    * Replace `/path/to/local/directory` with the path to the directory you want to upload.
+    * **IMPORTANT:** `YOUR_BUCKET_NAME` with the name of your GCS bucket. DO NOT INCLUDE THE `gs://` PREFIX.
+    * **IMPORTANT:** `/path/to/local/directory` with the path to the directory you want to upload.
+
+    For example:  
+
+    ```bash
+    python -m gcs_bulk_uploader --bucket_name arena_images_gcs_bucket --source_directory /home/user/my_images
+    ```
 
 3. **Command-Line Options:**
 
-    * `--bucket_name`: (Required) The name of the GCS bucket.
+    * `--bucket_name`: (Required) The name of the GCS bucket. Without the `gs://` prefix.
     * `--source_directory`: (Required) The path to the local directory containing the files.
     * `--destination_prefix`: (Optional) A prefix for the GCS object names (e.g., `images/`). Defaults to an empty string (no prefix).
     * `--verbose`: (Optional) Enable verbose output, including upload progress and logging. Use `--verbose` or omit it.
@@ -90,7 +96,7 @@ This Python script uploads files from a local directory to a Google Cloud Storag
     **Example:**
 
     ```bash
-    python gcs_bulk_uploader.py --bucket_name my-gcs-bucket --source_directory /home/user/my_images --destination_prefix images/ --verbose --extensions png,jpg --project_id my-gcp-project
+    python -m gcs_bulk_uploader --bucket_name arena_images_gcs_bucket --source_directory /home/user/my_images --destination_prefix images/ --verbose --extensions png,jpg --project_id my-gcp-project
     ```
 
 4. **Help:**
@@ -98,7 +104,7 @@ This Python script uploads files from a local directory to a Google Cloud Storag
     * To see the available options, use the `--help` flag:
 
         ```bash
-        python gcs_bulk_uploader.py --help
+        python -m gcs_bulk_uploader --help
         ```
 
 ## Script Details

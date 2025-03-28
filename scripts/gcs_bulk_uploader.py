@@ -139,7 +139,7 @@ class GCSUploader:
 def main(
     bucket_name: str,
     source_directory: str,
-    destination_directory: str = "stablediffusion",
+    destination_directory: str = "",
     verbose: bool = False,
     skip_if_exists: bool = False,
     extensions: Optional[str] = ".json,png",
@@ -149,7 +149,7 @@ def main(
     Uploads files from a local directory to a GCS bucket.
 
     Args:
-        bucket_name: The GCS bucket name.
+        bucket_name: The GCS bucket name e.g. "my-gcs-bucket" without the "gs://" prefix.
         source_directory: The local directory path.
         destination_prefix: Optional GCS destination prefix.
         verbose: Enable verbose output.
@@ -157,6 +157,18 @@ def main(
         extensions: Optional comma-separated file extensions (e.g., "png,json").
         project_id: Optional Google Cloud Project ID.
     """
+    # Validate destination directory
+    if not destination_directory:
+        destination_directory = os.path.basename(source_directory.rstrip('/\\'))
+        if not destination_directory:
+            raise ValueError("Destination directory cannot be empty.")
+        logging.info(f"Destination directory not provided. Using the base name of the source directory: {destination_directory}")
+        
+
+    # Validate bucket name does not start with gs://
+    if bucket_name.startswith("gs://"):
+        logging.info("Bucket name should not start with 'gs://'. Removing 'gs://' prefix.")
+        bucket_name = bucket_name[5:]       
 
     logging.info(f"Starting main function with bucket: {bucket_name}, source: {source_directory}, dest subfolder: {destination_directory}, project: {project_id}")
 
