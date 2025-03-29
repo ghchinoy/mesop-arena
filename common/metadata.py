@@ -39,6 +39,7 @@ def add_image_metadata(gcsuri: str, prompt: str, model: str):
     doc_ref.set(
         {
             "gcsuri": gcsuri,
+            "study": "live",
             "prompt": prompt,
             "model": model,
             "timestamp": current_datetime,  # alt: firestore.SERVER_TIMESTAMP
@@ -48,12 +49,13 @@ def add_image_metadata(gcsuri: str, prompt: str, model: str):
     print(f"Image data stored in Firestore with document ID: {doc_ref.id}")
 
 
-def get_elo_ratings():
+def get_elo_ratings(study: str):
     """ Retrieve ELO ratings for models from Firestore """
     # Fetch current ELO ratings from Firestore
     doc_ref = (
         db.collection(config.IMAGE_RATINGS_COLLECTION_NAME)
-        .where("type", "==", "elo_rating")
+        .where(filter=firestore.FieldFilter("study", "==", study))
+        .where(filter=firestore.FieldFilter("type", "==", "elo_rating"))
         .get()
     )
     updated_ratings = {}
@@ -68,7 +70,7 @@ def get_elo_ratings():
     return df
 
 
-def update_elo_ratings(model1: str, model2: str, winner: str, images: list[str], prompt: str):
+def update_elo_ratings(model1: str, model2: str, winner: str, images: list[str], prompt: str, study: str):
     """Update ELO ratings for models"""
 
     current_datetime = datetime.datetime.now()
@@ -76,7 +78,8 @@ def update_elo_ratings(model1: str, model2: str, winner: str, images: list[str],
     # Fetch current ELO ratings from Firestore
     doc_ref = (
         db.collection(config.IMAGE_RATINGS_COLLECTION_NAME)
-        .where("type", "==", "elo_rating")
+        .where(filter=firestore.FieldFilter("study", "==", study))
+        .where(filter=firestore.FieldFilter("type", "==", "elo_rating"))
         .get()
     )
 
@@ -124,6 +127,7 @@ def update_elo_ratings(model1: str, model2: str, winner: str, images: list[str],
         doc_ref = db.collection(config.IMAGE_RATINGS_COLLECTION_NAME).document()
         doc_ref.set(
             {
+                "study": study,
                 "type": "elo_rating",
                 "ratings": updated_ratings,
                 "timestamp": current_datetime,
@@ -143,19 +147,21 @@ def update_elo_ratings(model1: str, model2: str, winner: str, images: list[str],
             "image2": images[1],
             "winner": winner,
             "prompt": prompt,
+            "study": study
         }
     )
 
     print(f"Vote updated in Firestore with document ID: {doc_ref.id}")
 
 
-def get_latest_votes(limit: int = 10):
+def get_latest_votes(study: str, limit: int = 10):
     """Retrieve the latest votes from Firestore, ordered by timestamp in descending order."""
 
     try:
         votes_ref = (
             db.collection(config.IMAGE_RATINGS_COLLECTION_NAME)
-            .where("type", "==", "vote")
+            .where(filter=firestore.FieldFilter("study", "==", study))
+            .where(filter=firestore.FieldFilter("type", "==", "vote"))
             .order_by("timestamp", direction=firestore.Query.DESCENDING)
             .limit(limit)
         )

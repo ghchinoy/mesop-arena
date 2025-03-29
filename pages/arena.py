@@ -30,13 +30,13 @@ from prompts.utils import PromptManager
 from state.state import AppState
 from components.header import header
 
-from models.set_up import ModelSetup
+from models.set_up import ModelSetup, load_default_models
 
 from models.gemini_model import (
     generate_content,
     generate_images,
 )
-from models.generate import images_from_flux, images_from_imagen
+from models.generate import images_from_flux, images_from_imagen, study_fetch
 
 
 # Initialize configuration
@@ -52,9 +52,9 @@ GEMINI_MODELS = [config.MODEL_GEMINI2]
 
 # List of all image generation models
 # Check if flux1 endpoint is defined
-IMAGE_GEN_MODELS = IMAGEN_MODELS + GEMINI_MODELS
-if config.MODEL_FLUX1_ENDPOINT_ID:
-    IMAGE_GEN_MODELS.append(config.MODEL_FLUX1)
+# IMAGE_GEN_MODELS = IMAGEN_MODELS
+# if config.MODEL_FLUX1_ENDPOINT_ID:
+#     IMAGE_GEN_MODELS.append(config.MODEL_FLUX1)
 
 
 @me.stateclass
@@ -73,10 +73,12 @@ class PageState:
     arena_model2: str = ""
     arena_output: list[str] = field(default_factory=lambda: [])
     chosen_model: str = ""
+    study: str = "live"
+    study_models: list[str] = field(default_factory=list)
     # pylint: disable=invalid-field-call
 
 
-def arena_images(input: str):
+def arena_images(input: str, study: str):
     """Create images for arena comparison"""
     state = me.state(PageState)
     if input == "":  # handle condition where someone hits "random" but doesn't modify
@@ -90,76 +92,90 @@ def arena_images(input: str):
     logging.info("prompt: %s", prompt)
     if state.image_negative_prompt_input:
         logging.info("negative prompt: %s", state.image_negative_prompt_input)
-
+    
     with ThreadPoolExecutor() as executor:  # Create a thread pool
         futures = []
-
-        # model 1
-        if state.arena_model1 in IMAGEN_MODELS:
-            logging.info("model 1: %s", state.arena_model1)
-            futures.append(
-                executor.submit(
-                    images_from_imagen,
-                    state.arena_model1,
-                    prompt,
-                    state.image_aspect_ratio,
-                )
-            )
-        elif state.arena_model1.startswith(config.MODEL_GEMINI2):
-            logging.info("model 1: %s", state.arena_model1)
-            futures.append(
-                executor.submit(
-                    generate_images,
-                    prompt,
-                )
-            )
-        elif state.arena_model1.startswith(config.MODEL_FLUX1):
-            if config.MODEL_FLUX1_ENDPOINT_ID:
+        if study == "live":
+            # model 1
+            if state.arena_model1 in IMAGEN_MODELS:
                 logging.info("model 1: %s", state.arena_model1)
                 futures.append(
                     executor.submit(
-                        images_from_flux,
+                        images_from_imagen,
                         state.arena_model1,
                         prompt,
                         state.image_aspect_ratio,
                     )
                 )
-            else:
-                logging.error("no endpoint defined for %s", state.arena_model1)
+            elif state.arena_model1.startswith(config.MODEL_GEMINI2):
+                logging.info("model 1: %s", state.arena_model1)
+                futures.append(
+                    executor.submit(
+                        generate_images,
+                        prompt,
+                    )
+                )
+            elif state.arena_model1.startswith(config.MODEL_FLUX1):
+                if config.MODEL_FLUX1_ENDPOINT_ID:
+                    logging.info("model 1: %s", state.arena_model1)
+                    futures.append(
+                        executor.submit(
+                            images_from_flux,
+                            state.arena_model1,
+                            prompt,
+                            state.image_aspect_ratio,
+                        )
+                    )
+                else:
+                    logging.error("no endpoint defined for %s", state.arena_model1)
 
-        # model 2
-        if state.arena_model2 in IMAGEN_MODELS:
-            logging.info("model 2: %s", state.arena_model2)
-            futures.append(
-                executor.submit(
-                    images_from_imagen,
-                    state.arena_model2,
-                    prompt,
-                    state.image_aspect_ratio,
-                )
-            )
-        elif state.arena_model2.startswith(config.MODEL_GEMINI2):
-            logging.info("model 2: %s", state.arena_model2)
-            futures.append(
-                executor.submit(
-                    generate_images,
-                    prompt,
-                )
-            )
-        elif state.arena_model2.startswith(config.MODEL_FLUX1):
-            if config.MODEL_FLUX1_ENDPOINT_ID:
+            # model 2
+            if state.arena_model2 in IMAGEN_MODELS:
                 logging.info("model 2: %s", state.arena_model2)
                 futures.append(
                     executor.submit(
-                        images_from_flux,
+                        images_from_imagen,
                         state.arena_model2,
                         prompt,
                         state.image_aspect_ratio,
                     )
                 )
-            else:
-                logging.error("no endpoint defined for %s", state.arena_model2)
+            elif state.arena_model2.startswith(config.MODEL_GEMINI2):
+                logging.info("model 2: %s", state.arena_model2)
+                futures.append(
+                    executor.submit(
+                        generate_images,
+                        prompt,
+                    )
+                )
+            elif state.arena_model2.startswith(config.MODEL_FLUX1):
+                if config.MODEL_FLUX1_ENDPOINT_ID:
+                    logging.info("model 2: %s", state.arena_model2)
+                    futures.append(
+                        executor.submit(
+                            images_from_flux,
+                            state.arena_model2,
+                            prompt,
+                            state.image_aspect_ratio,
+                        )
+                    )
+                else:
+                    logging.error("no endpoint defined for %s", state.arena_model2)
 
+        else:
+            futures.extend([
+                executor.submit(
+                    study_fetch,
+                    state.arena_model1,
+                    prompt
+                ),
+                executor.submit(
+                    study_fetch,
+                    state.arena_model2,
+                    prompt
+                )
+            ])
+        
         for future in as_completed(futures):  # Wait for tasks to complete
             try:
                 result = future.result()  # Get the result of each task
@@ -172,6 +188,9 @@ def arena_images(input: str):
 def on_click_reload_arena(e: me.ClickEvent):  # pylint: disable=unused-argument
     """Reload arena handler"""
     state = me.state(PageState)
+    if state.study == "live":
+        state.study_models = load_default_models()
+    # IMAGE_GEN_MODELS = state.study_models
 
     state.arena_prompt = prompt_manager.random_prompt()
 
@@ -179,11 +198,12 @@ def on_click_reload_arena(e: me.ClickEvent):  # pylint: disable=unused-argument
 
     state.is_loading = True
     yield
+    print(f"Use {state.study_models}")
 
     # get random images
-    state.arena_model1, state.arena_model2 = random.sample(IMAGE_GEN_MODELS, 2)
+    state.arena_model1, state.arena_model2 = random.sample(state.study_models, 2)
     logging.info("%s vs. %s", state.arena_model1, state.arena_model2)
-    arena_images(state.arena_prompt)
+    arena_images(state.arena_prompt, state.study)
 
     state.is_loading = False
     yield
@@ -196,7 +216,7 @@ def on_click_arena_vote(e: me.ClickEvent):
     logging.info("user preferred %s: %s", e.key, model_name)
     state.chosen_model = model_name
     # update the elo ratings
-    update_elo_ratings(state.arena_model1, state.arena_model2, model_name, state.arena_output, state.arena_prompt)
+    update_elo_ratings(state.arena_model1, state.arena_model2, model_name, state.arena_output, state.arena_prompt, state.study)
     yield
     time.sleep(1)
     yield
@@ -204,8 +224,9 @@ def on_click_arena_vote(e: me.ClickEvent):
     state.arena_output.clear()
     state.chosen_model = ""
     state.arena_prompt = prompt_manager.random_prompt()
+    state.arena_model1, state.arena_model2 = random.sample(state.study_models, 2)
     yield
-    arena_images(state.arena_prompt)
+    arena_images(state.arena_prompt, state.study)
     yield
 
 
@@ -231,15 +252,22 @@ def arena_page_content(app_state: me.state):
     """Arena Mesop Page"""
 
     page_state = me.state(PageState)
+    prompt_manager.prompts_location = app_state.study_prompts_location
+    page_state.study = app_state.study
+    if page_state.study == "live":
+        app_state.study_models = load_default_models()
+    page_state.study_models = app_state.study_models
+    # IMAGE_GEN_MODELS = app_state.study_models
+    # print(IMAGE_GEN_MODELS)
+
 
     # TODO this is an initialization function that should be extracted
     if not app_state.welcome_message:
         app_state.welcome_message = generate_welcome()
     if not page_state.arena_prompt:
         page_state.arena_prompt = prompt_manager.random_prompt()
-        page_state.arena_model1 = config.MODEL_IMAGEN2
-        page_state.arena_model2 = config.MODEL_IMAGEN3_FAST
-        arena_images(page_state.arena_prompt)
+        page_state.arena_model1, page_state.arena_model2 = random.sample(app_state.study_models, 2)
+        arena_images(page_state.arena_prompt, app_state.study)
 
     with me.box(
         style=me.Style(
@@ -264,7 +292,7 @@ def arena_page_content(app_state: me.state):
                     flex_direction="column",
                 )
             ):
-                header("Arena", "stadium")
+                header("Arena" + (f" [Active Study: {app_state.study}]" if app_state.study != "live" else ""), "stadium")
 
                 # welcome message
                 with me.box(
@@ -342,6 +370,7 @@ def arena_page_content(app_state: me.state):
                                     )
                                 ):
                                     for idx, img in enumerate(page_state.arena_output):
+                                        # print(idx, img)
                                         model_name = f"arena_model{idx+1}"
                                         model_value = getattr(page_state, model_name)
 

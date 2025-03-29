@@ -38,7 +38,7 @@ def history_page_content(app_state: me.state):
             page_state = me.state(PageState)
             header("History", "history")
 
-            votes = get_latest_votes()
+            votes = get_latest_votes(app_state.study)
             print(f"retrieved {len(votes)} votes")
 
             with dialog(  # pylint: disable=not-context-manager

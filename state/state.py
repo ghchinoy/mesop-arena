@@ -14,6 +14,13 @@
 
 import mesop as me
 
+from dataclasses import field
+
+from config.default import Default
+from models.set_up import load_default_models
+
+cnfg = Default()
+
 
 @me.stateclass
 class AppState:
@@ -25,4 +32,6 @@ class AppState:
     welcome_message: str = ""
 
     name: str = "World"
-
+    study: str = "live"
+    study_prompts_location: str = "prompts/imagen_prompts.json"
+    study_models: list[str] = field(default_factory=list)

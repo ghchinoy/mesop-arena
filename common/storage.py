@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import base64
+from functools import lru_cache
 
 from google.cloud import aiplatform
 from google.cloud import storage
@@ -41,3 +42,11 @@ def store_to_gcs(
     else:
         blob.upload_from_string(contents, content_type=mime_type)
     return f"{cfg.GENMEDIA_BUCKET}/{destination_blob_name}"
+
+@lru_cache()
+def download_gcs_blob(gs_uri: str) -> bytes:
+    gcs_client: storage.Client = storage.Client(project=cfg.PROJECT_ID)
+    bucket, blob = gs_uri[5:].split("/", maxsplit=1)
+    blob = gcs_client.bucket(bucket).blob(blob)
+    blob_content = blob.download_as_bytes()
+    return blob_content
