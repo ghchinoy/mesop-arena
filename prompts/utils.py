@@ -12,13 +12,33 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """ Utility functions for prompts """
-
+from __future__ import annotations
 import json
 import random
+
+from google.api_core import exceptions as gapic_exceptions
+
+from common.storage import download_gcs_blob
+from config.default import Default
+
+config = Default()
 
 class PromptManager:
     """Singleton class to manage and provide image generation prompts"""
     _instance = None
+
+    _prompts_location: str = config.DEFAULT_PROMPTS
+    
+    @property
+    def prompts_location(self) -> str:
+        return self._prompts_location
+
+    @prompts_location.setter
+    def prompts_location(self, new_location: str):
+        if self._prompts_location == new_location:
+            return
+        self._prompts_location = new_location
+        self._instance._load_prompts()
 
     def __new__(cls):
         if cls._instance is None:
@@ -27,22 +47,37 @@ class PromptManager:
         return cls._instance
 
     def _load_prompts(self):
-        """Loads prompts from the JSON file into memory."""
+        """Loads prompts from the GCS blob into memory. Falls back to default prompt list."""
+        self.prompts = {"prompts": []} #initialize to empty list to avoid errors.
         try:
-            with open("imagen_prompts.json", "r") as file:
-                data = file.read()
-            self.prompts = json.loads(data)
+            if self.prompts_location.startswith("gs://"):
+                prompt_file = download_gcs_blob(gs_uri=self.prompts_location)
+                prompt_file = prompt_file.decode("utf-8")
+                self.prompts = json.loads(prompt_file)
+            else:
+                with open(config.DEFAULT_PROMPTS, "r") as f:
+                    self.prompts = json.load(f)
+
+        except gapic_exceptions.NotFound:
+            print("Error: Requested blob not found, loading the default prompt list.")
+            self.prompts_location = config.DEFAULT_PROMPTS
+
+        except gapic_exceptions.Unauthorized:
+            print("Error: Unauthorized to access requested blob.")
+
+        except json.JSONDecodeError as e:
+            print("Error: Requested blob is not a valid JSON. ", e)
+        
+        except UnicodeDecodeError as e:
+            print("Error: Failed to decode requested blob. ", e)
+        
         except FileNotFoundError:
             print("Error: imagen_prompts.json not found.")
-            self.prompts = {"imagen": []} #initialize to empty list to avoid errors.
-        except json.JSONDecodeError:
-            print("Error: imagen_prompts.json is not valid JSON.")
-            self.prompts = {"imagen": []}
 
     def random_prompt(self) -> str:
         """Returns a random image generation prompt."""
-        if self.prompts and self.prompts["imagen"]:
-            return random.choice(self.prompts["imagen"])
+        if self.prompts and self.prompts["prompts"]:
+            return random.choice(self.prompts["prompts"])
         else:
             return "Default prompt: No prompts available."  # Handle empty prompt list
 

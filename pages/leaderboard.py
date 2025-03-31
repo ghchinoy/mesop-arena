@@ -27,7 +27,7 @@ def leaderboard_page_content(app_state: me.state):
         with page_frame():  # pylint: disable=not-context-manager
             header("Leaderboard", "leaderboard")
 
-            df = get_elo_ratings()
+            df = get_elo_ratings(app_state.study)
 
             with me.box(style=me.Style(padding=me.Padding.all(10), width=500)):
                 me.table(

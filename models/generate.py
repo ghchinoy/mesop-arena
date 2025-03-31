@@ -20,14 +20,18 @@ import logging
 import time
 from typing import Any
 import uuid
+import random
+import os
 
 from PIL import Image
 
 from google.cloud import aiplatform
+from google.cloud.firestore import Client, FieldFilter
 import vertexai
 from vertexai.preview.vision_models import ImageGenerationModel
 
 from config.default import Default
+from config.firebase_config import FirebaseClient
 from common.storage import store_to_gcs
 from common.metadata import add_image_metadata
 
@@ -140,7 +144,7 @@ def images_from_imagen(model_name: str, prompt: str, aspect_ratio: str):
         # aspect_ratio=getattr(state, "image_aspect_ratio"),
         aspect_ratio=aspect_ratio,
         number_of_images=1,
-        output_gcs_uri=f"gs://{config.GENMEDIA_BUCKET}",
+        output_gcs_uri=f"gs://{config.GENMEDIA_BUCKET}/imagen_live",
         language="auto",
         # negative_prompt=state.image_negative_prompt_input,
         safety_filter_level="block_few",
@@ -169,6 +173,24 @@ def images_from_imagen(model_name: str, prompt: str, aspect_ratio: str):
 
     return arena_output
 
+def study_fetch(model_name: str, prompt: str) -> list[str]:
+    db: Client = FirebaseClient(database_id=config.IMAGE_FIREBASE_DB).get_client()
+    collection_ref = db.collection(config.IMAGE_COLLECTION_NAME)
+    print(f"Using: {model_name}")
+
+    query = collection_ref.where(filter=FieldFilter("prompt", "==", prompt)).where(filter=FieldFilter("model", "==", model_name)).stream()
+
+    docs = []
+    for doc in query:
+        gs_uri = doc.to_dict()['gcsuri']
+        if "stablediffusion" not in gs_uri:
+            docs.append(os.path.splitext(gs_uri)[0])
+        else:
+            if gs_uri.startswith("20250328_"):
+                docs.append(os.path.splitext(gs_uri)[0])
+            else:
+                docs.append(gs_uri)
+    return random.sample(docs, 1)
 
 if __name__ == "__main__":
     # Example usage

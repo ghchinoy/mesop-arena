@@ -39,7 +39,9 @@ class Default:
     GENMEDIA_BUCKET = os.environ.get("GENMEDIA_BUCKET")
     IMAGE_FIREBASE_DB = os.environ.get("IMAGE_FIREBASE_DB", "")
     IMAGE_COLLECTION_NAME = os.environ.get("IMAGE_COLLECTION_NAME", "arena_images")
+    STUDY_COLLECTION_NAME = os.environ.get("STUDY_COLLECTION_NAME", "arena_study")
     IMAGE_RATINGS_COLLECTION_NAME = os.environ.get("IMAGE_RATINGS_COLLECTION_NAME", "arena_elo")
+    DEFAULT_PROMPTS = "prompts/imagen_prompts.json"
     ELO_K_FACTOR = int(os.environ.get("ELO_K_FACTOR", 32))
 
     # image models
