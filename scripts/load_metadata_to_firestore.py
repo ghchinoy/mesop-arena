@@ -92,15 +92,15 @@ def main(
             operations.
 
     Example Usage (from the command line):
-        ```bash
+        ```
         python load_metadata_to_firestore.py --json_file_path path/to/metadata.json --firestore_collection_name my_images
         ```
 
-        ```bash
+        ```
         python load_metadata_to_firestore.py --top_level_key generated_art --gcs_sub_folder final_renders
         ```
 
-        ```bash
+        ```
         python load_metadata_to_firestore.py --prompt_image_mapping "{'text': 'prompt', 'files': 'images'}"
         ```
     """
