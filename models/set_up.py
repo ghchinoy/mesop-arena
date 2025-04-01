@@ -24,6 +24,8 @@ def load_default_models() -> list[str]:
     IMAGE_GEN_MODELS = [config.MODEL_IMAGEN2, config.MODEL_IMAGEN3_FAST, config.MODEL_IMAGEN3, config.MODEL_IMAGEN32,]
     if config.MODEL_FLUX1_ENDPOINT_ID:
         IMAGE_GEN_MODELS.append(config.MODEL_FLUX1)
+    if config.MODEL_STABLE_DIFFUSION_ENDPOINT_ID:
+        IMAGE_GEN_MODELS.append(config.MODEL_STABLE_DIFFUSION)
     return IMAGE_GEN_MODELS
 
 

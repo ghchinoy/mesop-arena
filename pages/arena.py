@@ -21,10 +21,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import mesop as me
 
-from common.metadata import (
-    add_image_metadata,
-    update_elo_ratings,
-)
+from common.metadata import update_elo_ratings
 from config.default import Default
 from prompts.utils import PromptManager
 from state.state import AppState
@@ -49,12 +46,6 @@ logging.basicConfig(level=logging.DEBUG)
 
 IMAGEN_MODELS = [config.MODEL_IMAGEN2, config.MODEL_IMAGEN3_FAST, config.MODEL_IMAGEN3, config.MODEL_IMAGEN32,]
 GEMINI_MODELS = [config.MODEL_GEMINI2]
-
-# List of all image generation models
-# Check if flux1 endpoint is defined
-# IMAGE_GEN_MODELS = IMAGEN_MODELS
-# if config.MODEL_FLUX1_ENDPOINT_ID:
-#     IMAGE_GEN_MODELS.append(config.MODEL_FLUX1)
 
 
 @me.stateclass
@@ -190,7 +181,6 @@ def on_click_reload_arena(e: me.ClickEvent):  # pylint: disable=unused-argument
     state = me.state(PageState)
     if state.study == "live":
         state.study_models = load_default_models()
-    # IMAGE_GEN_MODELS = state.study_models
 
     state.arena_prompt = prompt_manager.random_prompt()
 
@@ -257,9 +247,6 @@ def arena_page_content(app_state: me.state):
     if page_state.study == "live":
         app_state.study_models = load_default_models()
     page_state.study_models = app_state.study_models
-    # IMAGE_GEN_MODELS = app_state.study_models
-    # print(IMAGE_GEN_MODELS)
-
 
     # TODO this is an initialization function that should be extracted
     if not app_state.welcome_message:

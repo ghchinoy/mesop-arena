@@ -50,3 +50,14 @@ def download_gcs_blob(gs_uri: str) -> bytes:
     blob = gcs_client.bucket(bucket).blob(blob)
     blob_content = blob.download_as_bytes()
     return blob_content
+
+def check_gcs_blob_exists(gcs_blob_uri: str) -> bool:
+    """Check if a GCS blob exists."""
+    try:
+        gcs_client: storage.Client = storage.Client(project=cfg.PROJECT_ID)
+        bucket, blob = gcs_blob_uri[5:].split("/", maxsplit=1)
+        blob = gcs_client.bucket(bucket).blob(blob)
+        return blob.exists()
+    except Exception as e:
+        print(f"Error checking existence of {gcs_blob_uri}: {e}")
+        return False
