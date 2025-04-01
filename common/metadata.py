@@ -141,7 +141,7 @@ def load_metadata_from_json(
                     bar()  # Increment the progress bar
                     continue
 
-                print(f"Adding metadata for prompt: '{prompt}' with image URI: {selected_image_gcsuri})...")
+                print(f"Adding metadata for prompt: '{prompt}' with image URI: {selected_image_gcsuri}...")
                 add_image_metadata(collection_name=collection_name, gcsuri=selected_image_gcsuri, prompt=prompt, model=model_name)
                 bar()  # Increment the progress bar
 
