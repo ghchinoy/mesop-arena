@@ -37,6 +37,7 @@ class Default:
     INIT_VERTEX: bool = True
 
     GENMEDIA_BUCKET = os.environ.get("GENMEDIA_BUCKET")
+    GENMEDIA_GENERATED_BUCKET = os.environ.get("GENMEDIA_GENERATED_BUCKET")
     IMAGE_FIREBASE_DB = os.environ.get("IMAGE_FIREBASE_DB", "")
     IMAGE_COLLECTION_NAME = os.environ.get("IMAGE_COLLECTION_NAME", "arena_images")
     STUDY_COLLECTION_NAME = os.environ.get("STUDY_COLLECTION_NAME", "arena_study")
@@ -61,6 +62,9 @@ class Default:
 
         if not self.PROJECT_ID:
             raise ValueError("PROJECT_ID environment variable is not set.")
+        
+        if not self.GENMEDIA_GENERATED_BUCKET:
+            raise ValueError("GENMEDIA_GENERATED_BUCKET environment variable is not set.")
 
         if not self.GENMEDIA_BUCKET:
             raise ValueError("GENMEDIA_BUCKET environment variable is not set.")
