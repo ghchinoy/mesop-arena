@@ -31,7 +31,7 @@ class FirebaseClient:
         try:
             cred = credentials.ApplicationDefault()
             firebase_admin.initialize_app(cred)
-            print(f"[FirebaseClient] - initiating firebase client with `{database_id}`")
+            print(f"[FirebaseClient] - initiating firebase client with `{database_id}` on `{cred.project_id}`")
         except ValueError:
             print("[FirebaseClient] - Firebase already initialized.")
         self._client = firestore.client(database_id=database_id)

@@ -13,6 +13,10 @@
 # limitations under the License.
 
 import datetime
+import json
+import os
+from turtle import st
+from typing import Optional, Dict, Any, List
 import pandas as pd
 
 from google.cloud import firestore
@@ -20,6 +24,8 @@ from google.cloud import firestore
 from config.default import Default
 from config.firebase_config import FirebaseClient
 from models.set_up import ModelSetup
+from common.storage import check_gcs_blob_exists
+from alive_progress import alive_bar
 
 
 # Initialize configuration
@@ -29,25 +35,116 @@ config = Default()
 db = FirebaseClient(database_id=config.IMAGE_FIREBASE_DB).get_client()
 
 
-def add_image_metadata(gcsuri: str, prompt: str, model: str):
+def add_image_metadata(gcsuri: str, prompt: str, model: str, study: Optional[str] = "live", collection_name: Optional[str] = None):
     """Add Image metadata to Firestore persistence"""
-
+    
+    if collection_name is None:
+        collection_name = config.IMAGE_COLLECTION_NAME
+    print(f"Using Firestore collection: {collection_name}")
     current_datetime = datetime.datetime.now()
 
     # Store the image metadata in Firestore
-    doc_ref = db.collection(config.IMAGE_COLLECTION_NAME).document()
-    doc_ref.set(
-        {
-            "gcsuri": gcsuri,
-            "study": "live",
-            "prompt": prompt,
-            "model": model,
-            "timestamp": current_datetime,  # alt: firestore.SERVER_TIMESTAMP
-        }
-    )
-
+    doc_ref = db.collection(collection_name).document()
+    try:
+        doc_ref.set(
+            {
+                "gcsuri": gcsuri,
+                "study": study,
+                "prompt": prompt,
+                "model": model,
+                "timestamp": current_datetime,  # alt: firestore.SERVER_TIMESTAMP
+            }
+        )
+    except Exception as e:
+        print(f"Error storing image metadata: {e}")
+        return
     print(f"Image data stored in Firestore with document ID: {doc_ref.id}")
 
+
+def load_metadata_from_json(
+    collection_name: str,
+    json_file_path: str,
+    top_level_key: str,
+    gcs_sub_folder: str,
+    model_name: str,
+    key_mapping: Optional[Dict[Any, str]] = None,
+) -> None:
+    """
+    Loads metadata from a JSON file and adds it to Firestore using add_image_metadata,
+    with a progress bar.
+
+    Args:
+        collection_name: The name of the Firestore collection to store metadata in.
+        json_file_path: Path to the JSON file containing the metadata.
+        top_level_key: The key in the JSON that contains the list of metadata entries.
+        gcs_sub_folder: The sub-folder within the GCS bucket where the images are located.
+        model_name: The model to associate with the metadata entries.
+        key_mapping: An optional dictionary to map keys (or indices) from the JSON structure
+                     to the expected arguments of `add_image_metadata`.
+                     For the given example, it would be `{0: 'prompt', 1: 'images'}`.
+                     The value associated with 'images' is expected to be a list of image identifiers.
+    """
+    if key_mapping is None:
+        key_mapping = {0: "prompt", 1: "images"}
+
+    # Validate: Ensure the file exists
+    if not os.path.exists(json_file_path):
+        raise FileNotFoundError(f"Metadata file not found: {json_file_path}")
+
+    with open(json_file_path, "r", encoding="utf-8") as f:
+        metadata = json.load(f)
+        data_list = metadata.get(top_level_key, [])
+
+        if not data_list:
+            raise ValueError(f"No data found under the key '{top_level_key}' in the provided JSON file.")
+
+        total_items = len(data_list)
+        with alive_bar(total_items, title="Processing Metadata") as bar:
+            for item in data_list:
+                if not isinstance(item, (list, tuple)) or len(item) < 2:
+                    print(f"Skipping invalid item format: {item}. Expected a list or tuple with at least two elements.")
+                    bar()  # Increment the progress bar
+                    continue
+
+                prompt_key = key_mapping.get(0)
+                images_key = key_mapping.get(1)
+
+                if prompt_key is None or images_key is None:
+                    raise ValueError("Key mapping must include keys for both 'prompt' (typically index 0) and 'images' (typically index 1).")
+
+                prompt = item[0]
+                images = item[1]
+
+                if prompt is None:
+                    print(f"Skipping item with missing prompt: {item}")
+                    bar()  # Increment the progress bar
+                    continue
+
+                if not isinstance(images, list) or not images:
+                    print(f"No images found for prompt: '{prompt}'. Skipping...")
+                    bar()  # Increment the progress bar
+                    continue
+
+                print(f"Processing prompt: 'Found {len(images)} potential {'image' if len(images) == 1 else 'images'}...")
+                print(f"Images ID(s): {images}")
+                print(f"Sub-folder: {gcs_sub_folder}")
+                print(f"Model: {model_name}")
+                selected_image = None
+                for image_id in images:
+                    gcs_uri = f"gs://{Default.GENMEDIA_BUCKET}/{gcs_sub_folder}/{image_id}"
+                    if check_gcs_blob_exists(gcs_uri):
+                        print(f"Selected image: {image_id} exists in GCS.")
+                        selected_image = image_id
+                        selected_image_gcsuri = gcs_uri
+                        break
+                else:
+                    print(f"No valid images found in GCS for prompt: '{prompt}'. Skipping...")
+                    bar()  # Increment the progress bar
+                    continue
+
+                print(f"Adding metadata for prompt: '{prompt}' with image URI: {selected_image_gcsuri})...")
+                add_image_metadata(collection_name=collection_name, gcsuri=selected_image_gcsuri, prompt=prompt, model=model_name)
+                bar()  # Increment the progress bar
 
 def get_elo_ratings(study: str):
     """ Retrieve ELO ratings for models from Firestore """
