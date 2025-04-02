@@ -84,6 +84,26 @@ The output should look like this:
 }
 ```
 
+### Cloud Spanner
+We use Cloud Spanner to store the ELO scores, per model, for each rating done. Before running the application. 
+
+> **IMPORTANT:** As a prerequisite, create an instance of Cloud Spanner with 100 processing units from the Cloud Console. Instructions can be found [here](https://cloud.google.com/spanner/docs/getting-started).
+
+Next, change the following environment variables or use the default values already set in the `.env.template` file.
+
+
+```bash
+PROJECT_ID=<YOUR_PROJECT_ID>
+SPANNER_INSTANCE_ID="arena"
+SPANNER_DATABASE_ID="study"
+```
+
+Now run the following script to create the tables and indexes.  
+
+```bash
+python3 -m scripts.setup_study_db
+``` 
+
 
 ### Application environment vars
 
