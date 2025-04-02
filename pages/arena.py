@@ -14,17 +14,13 @@
 
 from dataclasses import field
 import random
-import json
 import logging
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import mesop as me
 
-from common.metadata import (
-    add_image_metadata,
-    update_elo_ratings,
-)
+from common.metadata import update_elo_ratings
 from config.default import Default
 from prompts.utils import PromptManager
 from state.state import AppState
@@ -36,7 +32,7 @@ from models.gemini_model import (
     generate_content,
     generate_images,
 )
-from models.generate import images_from_flux, images_from_imagen, study_fetch
+from models.generate import images_from_flux, images_from_imagen, images_from_stable_diffusion, study_fetch
 
 
 # Initialize configuration
@@ -49,12 +45,6 @@ logging.basicConfig(level=logging.DEBUG)
 
 IMAGEN_MODELS = [config.MODEL_IMAGEN2, config.MODEL_IMAGEN3_FAST, config.MODEL_IMAGEN3, config.MODEL_IMAGEN32,]
 GEMINI_MODELS = [config.MODEL_GEMINI2]
-
-# List of all image generation models
-# Check if flux1 endpoint is defined
-# IMAGE_GEN_MODELS = IMAGEN_MODELS
-# if config.MODEL_FLUX1_ENDPOINT_ID:
-#     IMAGE_GEN_MODELS.append(config.MODEL_FLUX1)
 
 
 @me.stateclass
@@ -128,6 +118,19 @@ def arena_images(input: str, study: str):
                     )
                 else:
                     logging.error("no endpoint defined for %s", state.arena_model1)
+            elif state.arena_model1.startswith(config.MODEL_STABLE_DIFFUSION):
+                if config.MODEL_STABLE_DIFFUSION_ENDPOINT_ID:
+                    logging.info("model 1: %s", state.arena_model1)
+                    futures.append(
+                        executor.submit(
+                            images_from_stable_diffusion,
+                            state.arena_model1,
+                            prompt,
+                            state.image_aspect_ratio,
+                        )
+                    )
+                else:
+                    logging.error("no endpoint defined for %s", state.arena_model1)
 
             # model 2
             if state.arena_model2 in IMAGEN_MODELS:
@@ -161,7 +164,20 @@ def arena_images(input: str, study: str):
                     )
                 else:
                     logging.error("no endpoint defined for %s", state.arena_model2)
-
+            elif state.arena_model2.startswith(config.MODEL_STABLE_DIFFUSION):
+                if config.MODEL_STABLE_DIFFUSION_ENDPOINT_ID:
+                    logging.info("model 2: %s", state.arena_model2)
+                    futures.append(
+                        executor.submit(
+                            images_from_stable_diffusion,
+                            state.arena_model2,
+                            prompt,
+                            state.image_aspect_ratio,
+                        )
+                    )
+                else:
+                    logging.error("no endpoint defined for %s", state.arena_model2)
+        # Fetch images from study
         else:
             futures.extend([
                 executor.submit(
@@ -190,7 +206,6 @@ def on_click_reload_arena(e: me.ClickEvent):  # pylint: disable=unused-argument
     state = me.state(PageState)
     if state.study == "live":
         state.study_models = load_default_models()
-    # IMAGE_GEN_MODELS = state.study_models
 
     state.arena_prompt = prompt_manager.random_prompt()
 
@@ -257,9 +272,7 @@ def arena_page_content(app_state: me.state):
     if page_state.study == "live":
         app_state.study_models = load_default_models()
     page_state.study_models = app_state.study_models
-    # IMAGE_GEN_MODELS = app_state.study_models
-    # print(IMAGE_GEN_MODELS)
-
+    print(f"======> Starting Page state study models: {page_state.study_models}")
 
     # TODO this is an initialization function that should be extracted
     if not app_state.welcome_message:
@@ -369,9 +382,9 @@ def arena_page_content(app_state: me.state):
                                         flex_wrap="wrap", display="flex", gap="15px"
                                     )
                                 ):
-                                    for idx, img in enumerate(page_state.arena_output):
-                                        # print(idx, img)
-                                        model_name = f"arena_model{idx+1}"
+                                    for idx, img in enumerate(page_state.arena_output, start=1):
+                                        print(f"===> idx: {idx}, img: {img}")
+                                        model_name = f"arena_model{idx}"
                                         model_value = getattr(page_state, model_name)
 
                                         img_url = img.replace(
