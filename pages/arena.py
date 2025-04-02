@@ -14,7 +14,6 @@
 
 from dataclasses import field
 import random
-import json
 import logging
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -33,7 +32,7 @@ from models.gemini_model import (
     generate_content,
     generate_images,
 )
-from models.generate import images_from_flux, images_from_imagen, study_fetch
+from models.generate import images_from_flux, images_from_imagen, images_from_stable_diffusion, study_fetch
 
 
 # Initialize configuration
@@ -119,6 +118,19 @@ def arena_images(input: str, study: str):
                     )
                 else:
                     logging.error("no endpoint defined for %s", state.arena_model1)
+            elif state.arena_model1.startswith(config.MODEL_STABLE_DIFFUSION):
+                if config.MODEL_STABLE_DIFFUSION_ENDPOINT_ID:
+                    logging.info("model 1: %s", state.arena_model1)
+                    futures.append(
+                        executor.submit(
+                            images_from_stable_diffusion,
+                            state.arena_model1,
+                            prompt,
+                            state.image_aspect_ratio,
+                        )
+                    )
+                else:
+                    logging.error("no endpoint defined for %s", state.arena_model1)
 
             # model 2
             if state.arena_model2 in IMAGEN_MODELS:
@@ -152,7 +164,20 @@ def arena_images(input: str, study: str):
                     )
                 else:
                     logging.error("no endpoint defined for %s", state.arena_model2)
-
+            elif state.arena_model2.startswith(config.MODEL_STABLE_DIFFUSION):
+                if config.MODEL_STABLE_DIFFUSION_ENDPOINT_ID:
+                    logging.info("model 2: %s", state.arena_model2)
+                    futures.append(
+                        executor.submit(
+                            images_from_stable_diffusion,
+                            state.arena_model2,
+                            prompt,
+                            state.image_aspect_ratio,
+                        )
+                    )
+                else:
+                    logging.error("no endpoint defined for %s", state.arena_model2)
+        # Fetch images from study
         else:
             futures.extend([
                 executor.submit(
@@ -247,6 +272,7 @@ def arena_page_content(app_state: me.state):
     if page_state.study == "live":
         app_state.study_models = load_default_models()
     page_state.study_models = app_state.study_models
+    print(f"======> Starting Page state study models: {page_state.study_models}")
 
     # TODO this is an initialization function that should be extracted
     if not app_state.welcome_message:
@@ -356,9 +382,9 @@ def arena_page_content(app_state: me.state):
                                         flex_wrap="wrap", display="flex", gap="15px"
                                     )
                                 ):
-                                    for idx, img in enumerate(page_state.arena_output):
-                                        # print(idx, img)
-                                        model_name = f"arena_model{idx+1}"
+                                    for idx, img in enumerate(page_state.arena_output, start=1):
+                                        print(f"===> idx: {idx}, img: {img}")
+                                        model_name = f"arena_model{idx}"
                                         model_value = getattr(page_state, model_name)
 
                                         img_url = img.replace(
