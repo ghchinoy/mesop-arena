@@ -188,7 +188,7 @@ class ArenaStudySchema():
                     time_of_rating TIMESTAMP NOT NULL OPTIONS (allow_commit_timestamp=true),
                     rating FLOAT64 NOT NULL,
                     study STRING(MAX) NOT NULL,
-                    id STRING(MAX) NOT NULL,
+                    id STRING(MAX) NOT NULL
                 )
                 PRIMARY KEY (study, model_name, time_of_rating)
                 """])
