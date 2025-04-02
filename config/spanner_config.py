@@ -32,7 +32,7 @@ from config.default import Default
 config = Default()
 
 @dataclass
-class StudyRun():
+class ArenaModelEvaluation():
     """This class maps 1:1 to DB table 'Study'. IO is handled by Spanner ORM."""
     model_name: str = field(default=None)  # Default model name if not provided
     study: str = field(default=None)  # Default study name if not provided
@@ -77,7 +77,7 @@ class ArenaStudyTracker:
         log(f"Generated unique ID: {unique_id}")
         return unique_id
 
-    def upsert_study_runs(self, study_runs: list[StudyRun], table_name: Optional[str] = "Study"):
+    def upsert_study_runs(self, study_runs: list[ArenaModelEvaluation], table_name: Optional[str] = "Study"):
         """Adds or updates a list of study runs in the Spanner database."""
         inserts = []
         updates = []
@@ -93,9 +93,9 @@ class ArenaStudyTracker:
                 is_insert = True
                 log("Setting time_of_rating to commit timestamp as it was not provided.")
 
-            columns = [field.name for field in fields(StudyRun)]
+            columns = [field.name for field in fields(ArenaModelEvaluation)]
             values = []
-            for field in fields(StudyRun):
+            for field in fields(ArenaModelEvaluation):
                 value = getattr(study_run, field.name)
                 if isinstance(value, datetime):
                     value = value.isoformat()
