@@ -22,10 +22,15 @@ class LogLevel:
     ON = 1
     WARNING = 2
     ERROR = 3
+    _names = {
+        0: "OFF",
+        1: "ON",
+        2: "WARNING",
+        3: "ERROR"
+    }
 
     def __repr__(self):
-        return self.name 
-
+        return self._names.get(self, "UNKNOWN")
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(message)s",
