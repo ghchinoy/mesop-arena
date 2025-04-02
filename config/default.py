@@ -54,9 +54,9 @@ class Default:
     MODEL_GEMINI2: str = "gemini-2.0-flash"
 
     # model garden image models
-    MODEL_FLUX1: str = "black-forest-labs/FLUX.1-schnell"
+    MODEL_FLUX1: str = "black-forest-labs/flux1-schnell"
     MODEL_FLUX1_ENDPOINT_ID: str = os.environ.get("MODEL_FLUX1_ENDPOINT_ID")
-    MODEL_STABLE_DIFFUSION: str = "stabilityai/stable-diffusion-2.1"
+    MODEL_STABLE_DIFFUSION: str = "stability-ai/stable-diffusion-2-1"
     MODEL_STABLE_DIFFUSION_ENDPOINT_ID: str = os.environ.get("MODEL_STABLE_DIFFUSION_ENDPOINT_ID")
 
     def __post_init__(self):
