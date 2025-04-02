@@ -22,7 +22,7 @@ from google.cloud import firestore
 
 from config.default import Default
 from config.firebase_config import FirebaseClient
-from config.spanner_config import ArenaStudyTracker, StudyRun
+from config.spanner_config import ArenaStudyTracker, ArenaModelEvaluation
 from models.set_up import ModelSetup
 from common.storage import check_gcs_blob_exists
 from alive_progress import alive_bar
@@ -263,7 +263,7 @@ def update_elo_ratings(model1: str, model2: str, winner: str, images: list[str],
         raise RuntimeError("Spanner study tracker initialization failed.")
     elo_ratings_by_model = []
     for model, elo in updated_ratings.items():
-        elo_study_entry = StudyRun(model_name=model, 
+        elo_study_entry = ArenaModelEvaluation(model_name=model, 
                              rating=elo, 
                              study=study)
         elo_ratings_by_model.append(elo_study_entry)
