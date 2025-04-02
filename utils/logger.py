@@ -47,4 +47,4 @@ def log(message: str, level: LogLevel = LogLevel.ON):
     elif level == LogLevel.ERROR:
         logging.error(message)
     else:
-        raise ValueError("Invalid log level specified. Use LogLevel.ON or LogLevel.OFF.")
+        raise ValueError("Invalid log level specified. Use LogLevel.ON, LogLevel.OFF, LogLevel.WARNING, or LogLevel.ERROR.")
