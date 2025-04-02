@@ -43,7 +43,7 @@ MODEL_ID = model_id
     retry=retry_if_exception_type(Exception),  # Retry on all exceptions
     reraise=True,  # re-raise the last exception if all retries fail
 )
-def generate_images(prompt: str) -> str:
+def generate_images(prompt: str) -> list[str]:
     """generate image content"""
 
     try:
@@ -55,7 +55,7 @@ def generate_images(prompt: str) -> str:
             ),
         )
         print(f"success! {response.candidates[0].content}")
-        return response.text
+        return [res.text for res in response.candidates]
 
     except Exception as e:
         print(f"error: {e}")
