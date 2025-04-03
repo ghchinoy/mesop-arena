@@ -23,6 +23,10 @@ from typing import Any
 from config.default import Default
 from config.firebase_config import FirebaseClient
 
+import asyncio
+from google.cloud.firestore import AsyncClient, FieldFilter
+
+
 cnfg = Default()
 db = FirebaseClient(cnfg.IMAGE_FIREBASE_DB).get_client()
 
@@ -34,6 +38,32 @@ def settings_page_content(app_state: me.state):
 
             me.text(f"Hello, {app_state.name}!")
             _render_study_info(_get_studies(), app_state)
+
+async def _add_study_field(study: str) -> bool:
+    db = AsyncClient(project=cnfg.PROJECT_ID, database=cnfg.IMAGE_FIREBASE_DB)
+
+    batch_transcations = db.batch()
+    ratings = db.collection("arena_elo")
+    docs = ratings.where(filter=FieldFilter("study", "==", study)).stream()
+
+    batches = []
+    idx = 0
+    for doc in docs:
+        doc_ref = doc.reference
+        batch_transcations.delete(doc_ref)
+
+        if((idx + 1) % 1000 == 0):
+            batches.append(batch_transcations.commit(timeout=60))
+            batch_transcations = db.batch()
+        idx += 1
+        idx = idx % 1000
+    
+    if batch_transcations:
+        batches.append(batch_transcations.commit(timeout=60))
+    
+    results = await asyncio.gather(*batches)
+
+    return all(results)
 
 def _get_studies() -> dict[dict[str, Any]]:
     studies = dict()
@@ -50,6 +80,8 @@ def _render_study_info(studies: dict[dict[str, Any]], app_state: me.state):
         app_state.study_prompts_location = studies[study.key]['gcsuri']
         app_state.study_models = studies[study.key].get('models', [])
     
+    def _handle_purge(study: me.ClickEvent):
+        asyncio.run(_add_study_field(study=study.key))
     
     if len(studies):
         me.markdown("## Select a Study:")
@@ -57,8 +89,12 @@ def _render_study_info(studies: dict[dict[str, Any]], app_state: me.state):
             with me.box(style=_BOX_STYLE):
                 for key, value in studies[study].items():
                     me.markdown(f"**{key}:** {value}")
-                me.button(label="Select Study", on_click=lambda study=study: _handle_select(study), key=study, disabled=app_state.study == study),
+                me.button(label="Select Study", on_click=lambda study=study: _handle_select(study), key=study, disabled=app_state.study == study)
+
+                
             me.divider(inset=False)
+        me.button(label="Reset Leaderboard", style=me.Style(position="absolute", top="70%", right="750px", transform="translateY(-50%)"),
+                            on_click=lambda study=app_state.study: _handle_purge(study), key=f"{app_state.study}")
             
     else:
         me.markdown("No Studies found")
