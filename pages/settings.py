@@ -39,7 +39,7 @@ def settings_page_content(app_state: me.state):
             me.text(f"Hello, {app_state.name}!")
             _render_study_info(_get_studies(), app_state)
 
-async def _add_study_field(study: str) -> bool:
+async def _purge_elo_ratings(study: str) -> bool:
     db = AsyncClient(project=cnfg.PROJECT_ID, database=cnfg.IMAGE_FIREBASE_DB)
 
     batch_transcations = db.batch()
@@ -81,7 +81,7 @@ def _render_study_info(studies: dict[dict[str, Any]], app_state: me.state):
         app_state.study_models = studies[study.key].get('models', [])
     
     def _handle_purge(study: me.ClickEvent):
-        asyncio.run(_add_study_field(study=study.key))
+        asyncio.run(_purge_elo_ratings(study=study.key))
     
     if len(studies):
         me.markdown("## Select a Study:")
