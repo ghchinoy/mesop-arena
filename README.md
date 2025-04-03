@@ -2,7 +2,7 @@
 
 This is an example of an arena & leaderboard to compare different image generation tools.
 
-Currently, it uses Imagen 2, Imagen 3, image generation models with Gemini 2.0 experimental's image output model forthcoming.
+Currently, it uses Flux1, Stable Diffusion, Imagen 2, Imagen 3, image generation models with Gemini 2.0 experimental's image output model forthcoming.
 
 The application is written in [Mesop](https://google.github.io/mesop/), a python UX framework, with the [Studio Scaffold starter](https://github.com/ghchinoy/studio-scaffold).
 
