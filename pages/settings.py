@@ -34,6 +34,8 @@ def settings_page_content(app_state: me.state):
 
             me.text(f"Hello, {app_state.name}!")
             _render_study_info(_get_studies(), app_state)
+            me.divider(inset=False)
+            _render_track_study_in_spanner(app_state)
 
 def _get_studies() -> dict[dict[str, Any]]:
     studies = dict()
@@ -62,6 +64,30 @@ def _render_study_info(studies: dict[dict[str, Any]], app_state: me.state):
             
     else:
         me.markdown("No Studies found")
+
+def _render_track_study_in_spanner(app_state: me.state):
+    """Render Spanner tracking information with a checkbox to enable/disable."""
+    def _toggle_spanner_tracking(event: me.CheckboxChangeEvent):
+        app_state.track_study_in_spanner = event.checked
+    
+    me.markdown("### Persist ELO Ratings In Database.")
+    me.checkbox(
+        label="Yes/No",
+        on_change=_toggle_spanner_tracking,
+        style=me.Style(
+            font_size="1rem",
+            color=me.theme_var("text_primary"),
+            border_radius=10,
+            background="linear-gradient(to right, #2196f3, #e3f2fd)",
+            # display="flex",
+            # flex_direction="column",
+        ),
+    )
+
+    if app_state.track_study_in_spanner:
+        me.markdown("Tracking: **Enabled**")
+    else:
+        me.markdown("Tracking: **Disabled**")
 
 _BOX_STYLE = me.Style(
     flex_basis="max(480px, calc(50% - 48px))",
