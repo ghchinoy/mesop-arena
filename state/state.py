@@ -29,9 +29,10 @@ class AppState:
     theme_mode: str = "light"
     sidenav_open: bool = True
     
-    welcome_message: str = ""
+    welcome_message: str = "Welcome to Arena!"
 
-    name: str = "World"
+    name: str = "Google Cloud Next 2025 Attendee"  # Default name for the user
     study: str = "live"
     study_prompts_location: str = "prompts/imagen_prompts.json"
     study_models: list[str] = field(default_factory=list)
+    track_study_in_spanner: bool = False
