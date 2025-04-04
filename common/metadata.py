@@ -22,9 +22,12 @@ from google.cloud import firestore
 
 from config.default import Default
 from config.firebase_config import FirebaseClient
+from config.spanner_config import ArenaStudyTracker, ArenaModelEvaluation
 from models.set_up import ModelSetup
 from common.storage import check_gcs_blob_exists
 from alive_progress import alive_bar
+
+from utils.logger import LogLevel, log
 
 
 # Initialize configuration
@@ -248,6 +251,29 @@ def update_elo_ratings(model1: str, model2: str, winner: str, images: list[str],
     )
 
     print(f"Vote updated in Firestore with document ID: {doc_ref.id}")
+
+    # Update the latest ELO ratings in Spanner
+    study_tracker = ArenaStudyTracker(
+        project_id=config.PROJECT_ID,
+        spanner_instance_id=config.SPANNER_INSTANCE_ID,
+        spanner_database_id=config.SPANNER_DATABASE_ID,
+    )
+    if not study_tracker:
+        log("Failed to initialize Spanner study tracker.", LogLevel.ERROR)
+        raise RuntimeError("Spanner study tracker initialization failed.")
+    elo_ratings_by_model = []
+    for model, elo in updated_ratings.items():
+        elo_study_entry = ArenaModelEvaluation(model_name=model, 
+                             rating=elo, 
+                             study=study)
+        elo_ratings_by_model.append(elo_study_entry)
+    
+    try:
+        study_tracker.upsert_study_runs(study_runs=elo_ratings_by_model)
+        log(f"ELO ratings updated in Spanner for study '{study}'.", LogLevel.ON)
+    except Exception as e:
+        log(f"Failed to update ELO ratings in Spanner: {e}", LogLevel.ERROR)
+        raise RuntimeError(f"Failed to update ELO ratings in Spanner: {e}")
 
 
 def get_latest_votes(study: str, limit: int = 10):

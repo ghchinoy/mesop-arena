@@ -52,7 +52,7 @@ def _render_study_info(studies: dict[dict[str, Any]], app_state: me.state):
     
     
     if len(studies):
-        me.markdown("## Select a Study:")
+        me.markdown("### Select a Study:")
         for study in studies.keys():
             with me.box(style=_BOX_STYLE):
                 for key, value in studies[study].items():
