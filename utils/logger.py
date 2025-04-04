@@ -24,9 +24,11 @@ class LogLevel:
     ERROR = 3
     _names = {0: "OFF", 1: "ON", 2: "WARNING", 3: "ERROR"}
 
-    def __repr__(self):
-        return self._names.get(self, "UNKNOWN")
+    def __init__(self, value):
+        self.value = value
 
+    def __repr__(self):
+        return self._names.get(self.value, "UNKNOWN")
 
 logging.basicConfig(
     level=logging.INFO,
