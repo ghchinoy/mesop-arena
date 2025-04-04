@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Setup the study database for GenMedia Arena on Spanner."""
-from math import e
 from typing import Optional
 import fire
 
