@@ -154,7 +154,8 @@ def gcs_to_http(gcs_uri: str) -> str:
     """replaces gcsuri with http uri"""
     return gcs_uri.replace(
         "gs://",
-        "https://storage.mtls.cloud.google.com/",
+        #"https://storage.mtls.cloud.google.com/", # secure
+        "https://storage.googleapis.com/" # public
     )
 
 
