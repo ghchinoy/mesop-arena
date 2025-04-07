@@ -389,7 +389,8 @@ def arena_page_content(app_state: me.state):
 
                                         img_url = img.replace(
                                             "gs://",
-                                            "https://storage.mtls.cloud.google.com/",
+                                            # "https://storage.mtls.cloud.google.com/", # secure
+                                            "https://storage.googleapis.com/" # public
                                         )
                                         with me.box(
                                             style=me.Style(align_items="center", justify_content="center", display="flex", flex_direction="column"),
