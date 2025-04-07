@@ -48,7 +48,7 @@ async def _purge_elo_ratings(study: str) -> bool:
 
     batches = []
     idx = 0
-    for doc in docs:
+    async for doc in docs:
         doc_ref = doc.reference
         batch_transcations.delete(doc_ref)
 
