@@ -36,7 +36,7 @@ def settings_page_content(app_state: me.state):
         with page_frame():  # pylint: disable=not-context-manager
             header("Settings", "settings")
 
-            me.text(f"Hello, {app_state.name}!")
+            me.text(app_state.welcome_message, style=me.Style(font_style="italic"))
             _render_study_info(_get_studies(), app_state)
 
 async def _purge_elo_ratings(study: str) -> bool:

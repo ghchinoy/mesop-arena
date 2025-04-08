@@ -321,7 +321,7 @@ def arena_page_content(app_state: me.state):
                         app_state.welcome_message,
                         style=me.Style(
                             width="80vw",
-                            font_size="10pt",
+                            font_size="12pt",
                             font_style="italic",
                             color="gray",
                         ),
@@ -352,10 +352,10 @@ def arena_page_content(app_state: me.state):
                     ):
                         me.text(
                             "Select the output you prefer for the given prompt",
-                            style=me.Style(font_weight=500, font_size="20px"),
+                            style=me.Style(font_weight=500, font_size="20px", text_transform="uppercase"),
                         )
                         me.box(style=me.Style(height=16))
-                        me.text(page_state.arena_prompt)
+                        me.text(page_state.arena_prompt, style=me.Style(font_size="20pt"))
 
                     # Image outputs
                     with me.box(style=_BOX_STYLE):
@@ -387,10 +387,12 @@ def arena_page_content(app_state: me.state):
                                         model_name = f"arena_model{idx}"
                                         model_value = getattr(page_state, model_name)
 
+                                        replace_url = "https://storage.mtls.cloud.google.com/"
+                                        if Default.PUBLIC_BUCKET:
+                                            replace_url = "https://storage.googleapis.com/"
                                         img_url = img.replace(
                                             "gs://",
-                                            # "https://storage.mtls.cloud.google.com/", # secure
-                                            "https://storage.googleapis.com/" # public
+                                            replace_url
                                         )
                                         with me.box(
                                             style=me.Style(align_items="center", justify_content="center", display="flex", flex_direction="column"),
