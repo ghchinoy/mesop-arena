@@ -60,6 +60,11 @@ class Default:
     MODEL_STABLE_DIFFUSION: str = "stability-ai/stable-diffusion-2-1"
     MODEL_STABLE_DIFFUSION_ENDPOINT_ID: str = os.environ.get("MODEL_STABLE_DIFFUSION_ENDPOINT_ID")
 
+    # Spanner related variables
+    SPANNER_INSTANCE_ID: str = os.environ.get("SPANNER_INSTANCE_ID", "arena")
+    SPANNER_DATABASE_ID: str = os.environ.get("SPANNER_DATABASE_ID", "study")
+    SPANNER_TIMEOUT: int = int(os.environ.get("SPANNER_TIMEOUT", 300))  # seconds
+
     def __post_init__(self):
         """Validates the configuration variables after initialization."""
 
