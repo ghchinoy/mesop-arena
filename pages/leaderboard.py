@@ -30,7 +30,7 @@ def leaderboard_page_content(app_state: me.state):
             df = get_elo_ratings(app_state.study)
 
             with me.box(
-                style=me.Style(align_items="center", width="100vh", display="flex", justify_content="space-evenly")
+                style=me.Style(align_items="center", display="flex", justify_content="space-evenly")
             ):
                 with me.box(style=me.Style(padding=me.Padding.all(10), width=500)):
                     me.table(
