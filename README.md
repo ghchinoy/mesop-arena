@@ -190,7 +190,7 @@ IMAGE_COLLECTION_NAME="arena_images"
 IMAGE_RATINGS_COLLECTION_NAME="arena_elo"
 ELO_K_FACTOR=32
 MODEL_FLUX1_ENDPOINT_ID=<YOUR_FLUX1_MODEL_ENDPOINT_ID> # This is the endpoint ID for the Flux1 model in Model Garden
-MODEL_STABLE_DIFFUSION_ENDPOINT_ID=<YOUR_STABLEDIFFUSION_ENDPOINT_ID> # This is the endpoint ID for the StableDiffusion model in Model Garden
+MODEL_STABLE_DIFFUSION_ENDPOINT_ID=<MODEL_STABLE_DIFFUSION_ENDPOINT_ID> # This is the endpoint ID for the StableDiffusion model in Model Garden
 ```
 
 ## Arena app
