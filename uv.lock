@@ -455,6 +455,24 @@ wheels = [
 ]
 
 [[package]]
+name = "google-cloud-spanner"
+version = "3.53.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "google-api-core", extra = ["grpc"] },
+    { name = "google-cloud-core" },
+    { name = "grpc-google-iam-v1" },
+    { name = "grpc-interceptor" },
+    { name = "proto-plus" },
+    { name = "protobuf" },
+    { name = "sqlparse" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/27/eb/cef9263b4ac61a9e967d3d6846c4469151160a1cced891791ce1c6ccddee/google_cloud_spanner-3.53.0.tar.gz", hash = "sha256:0c7be3134b74928cf928d1f73b58c722fc2014346de1240a0cc8ffdd3222f606", size = 659445 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d6/96/52997fc187611a2cf0c64df747fa70ffc0b469f0a367f39bdd078c43db52/google_cloud_spanner-3.53.0-py2.py3-none-any.whl", hash = "sha256:be863394521b44df3c5a118c00c4b7c978d4437adb49e359e39b3d76362a7e60", size = 483101 },
+]
+
+[[package]]
 name = "google-cloud-storage"
 version = "2.19.0"
 source = { registry = "https://pypi.org/simple" }
@@ -551,6 +569,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/b9/4e/8d0ca3b035e41fe0b3f31ebbb638356af720335e5a11154c330169b40777/grpc_google_iam_v1-0.14.2.tar.gz", hash = "sha256:b3e1fc387a1a329e41672197d0ace9de22c78dd7d215048c4c78712073f7bd20", size = 16259 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/66/6f/dd9b178aee7835b96c2e63715aba6516a9d50f6bebbd1cc1d32c82a2a6c3/grpc_google_iam_v1-0.14.2-py3-none-any.whl", hash = "sha256:a3171468459770907926d56a440b2bb643eec1d7ba215f48f3ecece42b4d8351", size = 19242 },
+]
+
+[[package]]
+name = "grpc-interceptor"
+version = "0.15.4"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "grpcio" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/9f/28/57449d5567adf4c1d3e216aaca545913fbc21a915f2da6790d6734aac76e/grpc-interceptor-0.15.4.tar.gz", hash = "sha256:1f45c0bcb58b6f332f37c637632247c9b02bc6af0fdceb7ba7ce8d2ebbfb0926", size = 19322 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/15/ac/8d53f230a7443401ce81791ec50a3b0e54924bf615ad287654fa4a2f5cdc/grpc_interceptor-0.15.4-py3-none-any.whl", hash = "sha256:0035f33228693ed3767ee49d937bac424318db173fef4d2d0170b3215f254d9d", size = 20848 },
 ]
 
 [[package]]
@@ -735,6 +765,7 @@ dependencies = [
     { name = "google-auth" },
     { name = "google-cloud-aiplatform" },
     { name = "google-cloud-firestore" },
+    { name = "google-cloud-spanner" },
     { name = "google-cloud-storage" },
     { name = "google-genai" },
     { name = "gunicorn" },
@@ -756,6 +787,7 @@ requires-dist = [
     { name = "google-auth", specifier = ">=2.38.0" },
     { name = "google-cloud-aiplatform", specifier = ">=1.87.0" },
     { name = "google-cloud-firestore", specifier = ">=2.20.1" },
+    { name = "google-cloud-spanner", specifier = ">=3.53.0" },
     { name = "google-cloud-storage", specifier = ">=2.19.0" },
     { name = "google-genai", specifier = ">=1.9.0" },
     { name = "gunicorn", specifier = ">=23.0.0" },
@@ -1130,6 +1162,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/a2/87/a6771e1546d97e7e041b6ae58d80074f81b7d5121207425c964ddf5cfdbd/sniffio-1.3.1.tar.gz", hash = "sha256:f4324edc670a0f49750a81b895f35c3adb843cca46f0530f79fc1babb23789dc", size = 20372 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/e9/44/75a9c9421471a6c4805dbf2356f7c181a29c1879239abab1ea2cc8f38b40/sniffio-1.3.1-py3-none-any.whl", hash = "sha256:2f6da418d1f1e0fddd844478f41680e794e6051915791a034ff65e5f100525a2", size = 10235 },
+]
+
+[[package]]
+name = "sqlparse"
+version = "0.5.3"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/e5/40/edede8dd6977b0d3da179a342c198ed100dd2aba4be081861ee5911e4da4/sqlparse-0.5.3.tar.gz", hash = "sha256:09f67787f56a0b16ecdbde1bfc7f5d9c3371ca683cfeaa8e6ff60b4807ec9272", size = 84999 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a9/5c/bfd6bd0bf979426d405cc6e71eceb8701b148b16c21d2dc3c261efc61c7b/sqlparse-0.5.3-py3-none-any.whl", hash = "sha256:cf2196ed3418f3ba5de6af7e82c694a9fbdbfecccdfc72e281548517081f16ca", size = 44415 },
 ]
 
 [[package]]
