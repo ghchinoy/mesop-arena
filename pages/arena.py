@@ -388,7 +388,7 @@ def arena_page_content(app_state: me.state):
                                         model_value = getattr(page_state, model_name)
 
                                         replace_url = "https://storage.mtls.cloud.google.com/"
-                                        if Default.PUBLIC_BUCKET.lower() == "true":
+                                        if Default.PUBLIC_BUCKET:
                                             replace_url = "https://storage.googleapis.com/"
                                         img_url = img.replace(
                                             "gs://",

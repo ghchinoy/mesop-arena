@@ -36,7 +36,7 @@ class Default:
     INIT_VERTEX: bool = os.environ.get("INIT_VERTEX", "True").lower() in ("true", "1")
 
     GENMEDIA_BUCKET: str = os.environ.get("GENMEDIA_BUCKET")
-    PUBLIC_BUCKET: str = os.environ.get("PUBLIC_BUCKET", "False")
+    PUBLIC_BUCKET: bool = os.environ.get("PUBLIC_BUCKET", "False").lower() in ("true", "1")
     IMAGE_FIREBASE_DB: str = os.environ.get("IMAGE_FIREBASE_DB")
     IMAGE_COLLECTION_NAME = os.environ.get("IMAGE_COLLECTION_NAME")
     STUDY_COLLECTION_NAME: str = os.environ.get("STUDY_COLLECTION_NAME", "arena_study")
