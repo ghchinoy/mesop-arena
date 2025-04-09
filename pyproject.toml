@@ -12,6 +12,7 @@ dependencies = [
     "google-auth>=2.38.0",
     "google-cloud-aiplatform>=1.87.0",
     "google-cloud-firestore>=2.20.1",
+    "google-cloud-spanner>=3.53.0",
     "google-cloud-storage>=2.19.0",
     "google-genai>=1.9.0",
     "gunicorn>=23.0.0",

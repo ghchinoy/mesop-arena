@@ -37,6 +37,7 @@ class Default:
 
     GENMEDIA_BUCKET: str = os.environ.get("GENMEDIA_BUCKET")
     PUBLIC_BUCKET: bool = os.environ.get("PUBLIC_BUCKET", "False").lower() in ("true", "1")
+    SHOW_RESULTS_PAUSE_TIME: int = int(os.environ.get("SHOW_RESULTS_PAUSE_TIME", "1"))
     IMAGE_FIREBASE_DB: str = os.environ.get("IMAGE_FIREBASE_DB")
     IMAGE_COLLECTION_NAME = os.environ.get("IMAGE_COLLECTION_NAME")
     STUDY_COLLECTION_NAME: str = os.environ.get("STUDY_COLLECTION_NAME", "arena_study")
