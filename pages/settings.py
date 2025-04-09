@@ -37,9 +37,18 @@ def settings_page_content(app_state: me.state):
             header("Settings", "settings")
 
             me.text(app_state.welcome_message, style=me.Style(font_style="italic"))
+
+            me.box(style=me.Style(height=16))
+
             _render_study_info(_get_studies(), app_state)
 
+            me.box(style=me.Style(height=16))
+
+            me.text(f"Vote pause time: {Default.SHOW_RESULTS_PAUSE_TIME} seconds")
+
+
 async def _purge_elo_ratings(study: str) -> bool:
+    """Reset the ELO Ratings"""
     db = AsyncClient(project=cnfg.PROJECT_ID, database=cnfg.IMAGE_FIREBASE_DB)
 
     batch_transcations = db.batch()
@@ -66,6 +75,7 @@ async def _purge_elo_ratings(study: str) -> bool:
     return all(results)
 
 def _get_studies() -> dict[dict[str, Any]]:
+    """ Get all Studies """
     studies = dict()
     docs = db.collection(cnfg.STUDY_COLLECTION_NAME).stream()
     for doc in docs:
@@ -75,6 +85,7 @@ def _get_studies() -> dict[dict[str, Any]]:
     return studies
 
 def _render_study_info(studies: dict[dict[str, Any]], app_state: me.state):
+    """Render the Mesop Studies"""
     def _handle_select(study: me.ClickEvent):
         app_state.study = study.key
         app_state.study_prompts_location = studies[study.key]['gcsuri']
@@ -84,17 +95,57 @@ def _render_study_info(studies: dict[dict[str, Any]], app_state: me.state):
         asyncio.run(_purge_elo_ratings(study=study.key))
     
     if len(studies):
-        me.markdown("### Select a Study:")
-        for study in studies.keys():
-            with me.box(style=_BOX_STYLE):
-                for key, value in studies[study].items():
-                    me.markdown(f"**{key}:** {value}")
-                me.button(label="Select Study", on_click=lambda study=study: _handle_select(study), key=study, disabled=app_state.study == study)
+        me.text("Available Studies", type="headline-5")
 
+        for study in studies.keys():
+            
+            with me.box(style=_BOX_STYLE):
+                this_study = studies[study]
+
+                study_modifier = "Available"
+                if app_state.study == study:
+                    study_modifier = "Current"
+                me.text(f"{study_modifier} Study: {this_study['label']}", style=me.Style(font_weight="bold"))
+                me.box(style=me.Style(height=8))
+
+                models = this_study.get("models")
+                model_list_items = ""
+                if models:
+                    for model in models:
+                        model_list_items += f"<li>{model}</li>"
+                else:
+                    model_list_items = """
+                    <li>imagegeneration@006</li>
+                    <li>imagen-3.0-generate-002</li>
+                    <li>imagen-3.0-fast-generate-001</li>
+                    <li>black-forest-labs/flux1-schnell</li>
+                    <li>stability-ai/stable-diffusion-2-1</li>
+                    """
+                me.html(f"Models <ul>{model_list_items}</ul>")
+
+
+                me.text(f"Prompt list: {this_study['gcsuri']}")
+                #for key, value in studies[study].items():
+                #    me.markdown(f"**{key}:** {value}")
+
+
+                if app_state.study != study:
+                    me.button(
+                        label="Activate", 
+                        on_click=lambda study=study: _handle_select(study), 
+                        key=study, 
+                        disabled=app_state.study == study,
+                    )
                 
-            me.divider(inset=False)
-        me.button(label="Reset Leaderboard", style=me.Style(position="absolute", top="70%", right="750px", transform="translateY(-50%)"),
-                            on_click=lambda study=app_state.study: _handle_purge(study), key=f"{app_state.study}")
+
+            me.box(style=me.Style(height=16))
+                
+            #me.divider(inset=False)
+
+        me.box(style=me.Style(height=16))
+
+        me.button(label="Reset Leaderboard for current study", 
+           on_click=lambda study=app_state.study: _handle_purge(study), key=f"{app_state.study}")
             
     else:
         me.markdown("No Studies found")
@@ -107,5 +158,5 @@ _BOX_STYLE = me.Style(
     padding=me.Padding(top=16, left=16, right=16, bottom=16),
     display="flex",
     flex_direction="column",
-    width="100%",
+    #width="100%",
 )
